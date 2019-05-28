@@ -1,19 +1,27 @@
-# HomeBear.Blinkt
+# HomeBear.Rainbow
 
 <img src="docs/header.png" width="100" /> 
 
-> Windows 10 IoT Core UWP app that works great with the Pimoroni Blinkt! LED Raspberry Pi HAT.
+> Windows 10 IoT Core UWP app that works great with the [Pimoroni RainbowHAT](https://shop.pimoroni.com/products/rainbow-hat-for-android-things). The app is currently work in progress.
 
 ## Prerequirements
 - Windows 10
 - Visual Studio 2019
 - Raspbbery Pi 3 (B) with [Windows 10 IoT Core](https://developer.microsoft.com/en-us/windows/iot) 17763 or higher
-- [Pimoroni Blinkt!](https://shop.pimoroni.com/products/blinkt) Raspberry Pi HAT
+- [Pimoroni RainbowHAT](https://shop.pimoroni.com/products/rainbow-hat-for-android-things)
 
 ## How it looks
 
-![On-device](docs/on-device-screenshot.jpg)
-![Device](docs/real-device.jpg)
+At the moment, it's just a headless application that is controlled by the input controls of the RainbowHAT.
+
+## Features
+
+- [x] Control the large R, G, B LEDs
+- [x] Seven APA102 multicolour LEDs
+- [x] Listen to 'A', 'B', 'C' capacitive touch buttons
+- [ ] 14-segment alphanumeric displays
+- [ ] BMP280 temperature and pressure sensor
+- [ ] Piezo buzzer
 
 ## Contributing
 
@@ -23,15 +31,10 @@ Feel free to improve the quality of the code. It would be great to learn more fr
 
 Just me, [Tobi]([https://tscholze.github.io).
 
-## Special thanks to
-Thanks to [cpayette](https://www.twitch.tv/cpayette) to encouraging me to stay on the ball with Windows 10 IoT Core and keep streaming my coding attemps.
-
-![Discord](docs/thanks.png)
-
 ## Thanks to
 
+* Pimoroni [Discord](https://discordapp.com/invite/hr93ByC) Community
 * [MarcJenningsUK](https://github.com/MarcJenningsUK/PimoroniSharp) - PimoroniSharp
-* [Google Material Design](https://materialdesignicons.com/) - Blinkt Icon
 
 ## License
 
