@@ -120,6 +120,7 @@
     </Compile>
     <Compile Include="Controller\APA102.cs" />
     <Compile Include="Controller\APA102LED.cs" />
+    <Compile Include="Controller\BMP280.cs" />
     <Compile Include="Controller\RainbowHAT.cs" />
     <Compile Include="Controller\RainbowHATAction.cs" />
     <Compile Include="Controller\RainbowHATButtonSource.cs" />

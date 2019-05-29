@@ -13,14 +13,9 @@ namespace HomeBear.Rainbow.Controller
     ///     - Pimoroni: https://shop.pimoroni.com/products/rainbow-hat-for-android-things
     ///     - Scheme: https://pinout.xyz/pinout/rainbow_hat
     /// </summary>
-    partial class RainbowHAT
+    partial class RainbowHAT: IDisposable
     {
         #region Private constants 
-
-        /// <summary>
-        /// Private singelton instance.
-        /// </summary>
-        private static readonly RainbowHAT instance = new RainbowHAT();
 
         /// <summary>
         /// GPIO (BCM) pin number of the red LED.
@@ -36,21 +31,6 @@ namespace HomeBear.Rainbow.Controller
         /// GPIO (BCM) pin number of the blue LED.
         /// </summary>
         private static readonly int GPIO_NUMBER_BLUE = 26;
-
-        #endregion
-
-        #region Public properties
-
-        /// <summary>
-        /// Default instance of RainbowHAT.
-        /// </summary>
-        public static RainbowHAT Default
-        {
-            get
-            {
-                return instance;
-            }
-        }
 
         #endregion
 
@@ -94,13 +74,12 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// Default APA102 controller.
         /// </summary>
-        private readonly APA102 apa102 = APA102.Default;
+        private readonly APA102 apa102 = new APA102();
 
         /// <summary>
-        /// Determines if the RainbowHAT has been already
-        /// initialized.
+        /// Default BMP280 controller.
         /// </summary>
-        private bool isInítialized = false;
+        private readonly BMP280 bmp280 = new BMP280();
 
         /// <summary>
         /// Timer that will trigger an input read of the
@@ -113,23 +92,43 @@ namespace HomeBear.Rainbow.Controller
         #region Constructor & Deconstructor
 
         /// <summary>
-        /// Static constructor. Required to act as a singelton.
-        /// </summary>
-        static RainbowHAT()
-        {
-
-        }
-
-        /// <summary>
         /// Private constructor with rudimentary setup.
         /// </summary>
-        private RainbowHAT()
+        public RainbowHAT()
         {
+            gpioController = GpioController.GetDefault();
+
             // Ensure that we have a valid gpio connection
             if (gpioController == null)
             {
                 throw new OperationCanceledException("Operation canceled due missing GPIO controller");
             }
+
+            Init();
+        }
+        #endregion
+
+        #region Disposeable
+
+        /// <summary>
+        /// Will dispose all related attributes.
+        /// </summary>
+        public void Dispose()
+        {
+            // Cancel timers
+            buttonsValueReadTimer.Cancel();
+
+            // Dispose child controller
+            apa102.Dispose();
+            bmp280.Dispose();
+
+            // Dispose pins
+            redPin.Dispose();
+            greenPin.Dispose();
+            bluePin.Dispose();
+            buttonAPin.Dispose();
+            buttonBPin.Dispose();
+            buttonCPin.Dispose();
         }
 
         #endregion
@@ -151,13 +150,7 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="action">Action to perform.</param>
         public void PerformAction(RainbowHATAction action)
         {
-            // Ensure everything required has been already initialized.
-            if (!isInítialized)
-            {
-                Init();
-            }
-
-            switch(action)
+            switch (action)
             {
                 case RainbowHATAction.TurnOnRed:
                     redPin.Write(GpioPinValue.High);
@@ -176,6 +169,7 @@ namespace HomeBear.Rainbow.Controller
                     break;
 
                 default:
+                    Logger.Log(this, $"Unknown action should be performed: {action}");
                     break;
             }
         }
@@ -185,14 +179,14 @@ namespace HomeBear.Rainbow.Controller
         #region Private helpers
 
         /// <summary>
-        /// Initializes the RainbowHAT. IT will setup all required 
+        /// Initializes the RainbowHAT. It will setup all required 
         /// GPIO pins.
         /// 
         /// Caution;
         ///     This is required before accessing other
         ///     methods in this class.
         /// </summary>
-        public void Init()
+        private void Init()
         {
             Logger.Log(this, "Init");
 
@@ -217,9 +211,6 @@ namespace HomeBear.Rainbow.Controller
 
             // Setup timer.
             buttonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(ButtonsValueReadTimer_Tick, TimeSpan.FromMilliseconds(500));
-
-            // Set flag.
-            isInítialized = true;
         }
 
         /// <summary>

@@ -1,11 +1,8 @@
-﻿using GalaSoft.MvvmLight.Command;
-using HomeBear.Rainbow.Controller;
+﻿using HomeBear.Rainbow.Controller;
 using HomeBear.Rainbow.Utils;
 using System;
-using System.Windows.Input;
 using Windows.ApplicationModel;
 using Windows.System.Threading;
-using Windows.UI;
 
 namespace HomeBear.Rainbow.ViewModel
 {
@@ -84,7 +81,7 @@ namespace HomeBear.Rainbow.ViewModel
         /// <summary>
         /// Underlying RainbowHAT.
         /// </summary>
-        readonly RainbowHAT rainbowHAT = RainbowHAT.Default;
+        readonly RainbowHAT rainbowHAT = new RainbowHAT();
 
         #endregion
 
@@ -104,9 +101,6 @@ namespace HomeBear.Rainbow.ViewModel
 
             // Setup callback
             rainbowHAT.CaptiveButtonPressed += CaptiveButtonPressed;
-
-            // TODO: Fix the need to call this outside the controller.
-            rainbowHAT.Init();
         }
 
         private void CaptiveButtonPressed(object sender, RainbowHATEvent e)

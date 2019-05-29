@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Devices.Gpio;
 
 namespace HomeBear.Rainbow.Controller
@@ -18,7 +16,7 @@ namespace HomeBear.Rainbow.Controller
     ///     - PimoroniSharp port of the mostly similar Blinkt!:
     ///         https://github.com/MarcJenningsUK/PimoroniSharp/blob/master/Pimoroni.Blinkt/Blinkt.cs
     /// </summary>
-    partial class APA102
+    partial class APA102: IDisposable
     {
         #region Private constants
 
@@ -51,8 +49,6 @@ namespace HomeBear.Rainbow.Controller
 
         #region Private properties 
 
-        private static readonly APA102 instance = new APA102();
-
         /// <summary>
         /// System's default GPIO controller.
         /// </summary>
@@ -76,33 +72,18 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// List of all led leds.
         /// </summary>
-        private APA102LED[] leds = new APA102LED[NUMBER_OF_LEDS];
-
-        #endregion
-
-        #region Public Properties
-
-        /// <summary>
-        /// Default instance of BlinktController.
-        /// </summary>
-        public static APA102 Default
-        {
-            get
-            {
-                return instance;
-            }
-        }
+        private readonly APA102LED[] leds = new APA102LED[NUMBER_OF_LEDS];
 
         #endregion
 
         #region Constructor & Deconstructor
 
-        static APA102()
-        {
-
-        }
-
-        private APA102()
+        /// <summary>
+        /// Constructor.
+        /// 
+        /// Will setup all required GPIO settings and values.
+        /// </summary>
+        public APA102()
         {
             // Setup list.
             for (int i = 0; i < NUMBER_OF_LEDS; i++)
@@ -128,17 +109,22 @@ namespace HomeBear.Rainbow.Controller
             WriteLEDValues();
         }
 
+        #endregion
+
+        #region Disposeable
+
         /// <summary>
-        /// Deconstructor.
-        /// Cleans GPIO connections.
+        /// Will dispose all related attributes.
         /// </summary>
-        ~APA102()
+        public void Dispose()
         {
             TurnOff();
             WriteLEDValues();
             clockPin.Dispose();
             dataPin.Dispose();
+            csPin.Dispose();
         }
+
 
         #endregion
 
