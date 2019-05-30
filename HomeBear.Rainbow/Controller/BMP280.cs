@@ -73,9 +73,69 @@ namespace HomeBear.Rainbow.Controller
         private static readonly byte REGISTER_LSB_TEMPERATUR = 0xFB;
 
         /// <summary>
-        /// Gets thebits between msb and lsb of the temperatur measurement.
+        /// Gets the bits between msb and lsb of the temperatur measurement.
         /// </summary>
         private static readonly byte REGISTER_XLSB_TEMPERATUR = 0xFC;
+
+        /// <summary>
+        /// I2C register for the first digit of the pressur measurement.
+        /// </summary>
+        private static readonly byte REGISTER_DIGIT_PRESSURE_1 = 0x8E;
+
+        /// <summary>
+        /// I2C register for the second digit of the pressure measurement.
+        /// </summary>
+        private static readonly byte REGISTER_DIGIT_PRESSURE_2 = 0x90;
+
+        /// <summary>
+        /// I2C register for the third digit of the pressure measurement.
+        /// </summary>
+        private static readonly byte REGISTER_DIGIT_PRESSURE_3 = 0x92;
+
+        /// <summary>
+        /// I2C register for the fourth digit of the pressur measurement.
+        /// </summary>
+        private static readonly byte REGISTER_DIGIT_PRESSURE_4 = 0x94;
+
+        /// <summary>
+        /// I2C register for the fith digit of the pressur measurement.
+        /// </summary>
+        private static readonly byte REGISTER_DIGIT_PRESSURE_5 = 0x96;
+
+        /// <summary>
+        /// I2C register for the sixth digit of the pressur measurement.
+        /// </summary>
+        private static readonly byte REGISTER_DIGIT_PRESSURE_6 = 0x98;
+
+        /// <summary>
+        /// I2C register for the seventh digit of the pressur measurement.
+        /// </summary>
+        private static readonly byte REGISTER_DIGIT_PRESSURE_7 = 0x9A;
+
+        /// <summary>
+        /// I2C register for the eigths digit of the pressur measurement.
+        /// </summary>
+        private static readonly byte REGISTER_DIGIT_PRESSURE_8 = 0x9C;
+
+        /// <summary>
+        /// I2C register for the ninth digit of the pressur measurement.
+        /// </summary>
+        private static readonly byte REGISTER_DIGIT_PRESSURE_9 = 0x9E;
+
+        /// <summary>
+        /// Gets the most significant bit of the preasure measurement.
+        /// </summary>
+        private static readonly byte REGISTER_MSB_PRESSURE = 0xF7;
+
+        /// <summary>
+        /// Gets the least significant bit of the pressure measurement.
+        /// </summary>
+        private static readonly byte REGISTER_LSB_PRESSURE = 0XF8;
+
+        /// <summary>
+        /// Gets the bits between msb and lsb of the pressure measurement.
+        /// </summary>
+        private static readonly byte REGISTER_XLSB_PRESSURE = 0xF9;
 
         #endregion
 
@@ -158,7 +218,7 @@ namespace HomeBear.Rainbow.Controller
         /// Reads temperatur from BMP280.
         /// </summary>
         /// <returns>Read temperature value.</returns>
-        public double ReadTemperature()
+        public double ReadTemperature(bool asFinite = false)
         {
             // Ensure BMP280 has been initialzed.
             if(!isInitialized)
@@ -180,8 +240,64 @@ namespace HomeBear.Rainbow.Controller
             double part1 = ((rawValue / 16384.0) - (calibrationInformation.Temperatur1/ 1024.0)) * calibrationInformation.Temperatur2;
             double part2 = (rawValue / 131072.0 - calibrationInformation.Temperatur1 / 8192.0) * (rawValue / 131072.0 - calibrationInformation.Temperatur2 / 8192.0) * calibrationInformation.Temperatur3;
 
+            // Set global values.
+            var finiteTemperature = part1 + part2;
+
+            // Check which value representation is required.
+            if (asFinite)
+            {
+                return finiteTemperature;
+            }
+
             // Return combined / transformed value.
-            return (part1 + part2) / 5120.0;
+            return finiteTemperature / 5120.0;
+        }
+
+        public double ReadPressure()
+        {
+            // Ensure BMP280 has been initialzed.
+            if (!isInitialized)
+            {
+                Logger.Log(this, "BMP has not been initialized, yet. Call `InitializeAsync()` at very first operation.");
+                return 0;
+            }
+
+            // Current temperature is required for pressure meassurement.
+            var temperature = ReadTemperature(true);
+
+            // Get byte values from I2C device.
+            byte msb = ReadByte(REGISTER_MSB_PRESSURE);
+            byte lsb = ReadByte(REGISTER_LSB_PRESSURE);
+            byte xlsb = ReadByte(REGISTER_XLSB_PRESSURE);
+
+            // Combine values into raw temperatur value.
+            int rawValue = (msb << 12) + (lsb << 4) + (xlsb >> 4);
+
+            // Transform it into a humanreadble value.
+            // It uses the compensation formula in the BMP280 datasheet.
+            long part1 = Convert.ToInt64(temperature) - 128000;
+            long part2 = part1 * part1 * calibrationInformation.Pressure6;
+            part2 += ((part1 * calibrationInformation.Pressure5) << 17);
+            part2 += (long)calibrationInformation.Pressure4 << 35;
+            part1 = ((part1 * part1 * calibrationInformation.Pressure3) >> 8) + ((part1 * calibrationInformation.Pressure2) << 12);
+            part1 = ((((long)1 << 47) + part1) * calibrationInformation.Pressure1) >> 33;
+
+            // Ensure valid information.
+            if (part1 == 0)
+            {
+                Logger.Log(this, "Pressure value would be invalid. Returning 0");
+                return 0; 
+            }
+
+            //Perform calibration operations as per datasheet: http://www.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf
+            long pressure = 1048576 - rawValue;
+            pressure = (((pressure << 31) - part2) * 3125) / part1;
+            part1 = (calibrationInformation.Pressure9 * (pressure >> 13) * (pressure >> 13)) >> 25;
+            part2 = (calibrationInformation.Pressure8 * pressure) >> 19;
+            pressure = ((pressure + part1 + part2) >> 8) + ((long)calibrationInformation.Pressure7 << 4);
+
+            // Return calculated pressure.
+            return pressure;
         }
 
         #endregion
@@ -213,7 +329,17 @@ namespace HomeBear.Rainbow.Controller
                 // Read temperatur calibration information
                 Temperatur1 = ReadUIntFromLittleEndian(REGISTER_DIGIT_TEMPERATUR_1),
                 Temperatur2 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_TEMPERATUR_2),
-                Temperatur3 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_TEMPERATUR_3)
+                Temperatur3 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_TEMPERATUR_3),
+                // Read pressure calibration information.
+                Pressure1 = ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_1),
+                Pressure2 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_2),
+                Pressure3 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_3),
+                Pressure4 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_4),
+                Pressure5 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_5),
+                Pressure6 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_6),
+                Pressure7 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_7),
+                Pressure8 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_8),
+
             };
 
             // Ensure that every request has been read and processed.

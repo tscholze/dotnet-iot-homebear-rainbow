@@ -229,6 +229,10 @@ namespace HomeBear.Rainbow.Controller
 
             // Initialze child devices
             await bmp280.InitializeAsync();
+
+            var p = bmp280.ReadPressure();
+
+            Logger.Log(this, $"PPPP -> {p}");
         }
 
         /// <summary>
