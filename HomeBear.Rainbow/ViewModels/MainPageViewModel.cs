@@ -6,6 +6,10 @@ using Windows.System.Threading;
 
 namespace HomeBear.Rainbow.ViewModel
 {
+    /// <summary>
+    /// ViewModel for the `MainPage`.
+    /// Containts access to the RainbowHAT controller.
+    /// </summary>
     class MainPageViewModel : BaseViewModel
     {
         #region Public properties 
@@ -99,16 +103,21 @@ namespace HomeBear.Rainbow.ViewModel
                 TimeSpan.FromSeconds(1)
            );
 
-            // Setup callback
+            // Setup events
             rainbowHAT.CaptiveButtonPressed += CaptiveButtonPressed;
+            rainbowHAT.TemperaturMeassured += TemperaturMeassured;
         }
+
+        #endregion
+
+        #region Event handlers 
 
         /// <summary>
         /// Handle captive button presses.
         /// 
         /// </summary>
         /// <param name="sender">Sender object.</param>
-        /// <param name="e">Args.</param>
+        /// <param name="e">Event args.</param>
         private void CaptiveButtonPressed(object sender, RainbowHATEvent e)
         {
             Logger.Log(this, "CaptiveButtonPressed called");
@@ -124,6 +133,19 @@ namespace HomeBear.Rainbow.ViewModel
                 rainbowHAT.PerformAction(RainbowHATAction.TurnOffRed);
                 rainbowHAT.PerformAction(RainbowHATAction.LEDsOff);
             }
+        }
+
+        /// <summary>
+        /// Handle temperature meassurements.
+        /// 
+        /// </summary>
+        /// <param name="sender">Sender object.</param>
+        /// <param name="e">Event args.</param>
+        private void TemperaturMeassured(object sender, RainbowHATEvent e)
+        {
+            Logger.Log(this, "TemperaturMeassured called");
+
+            // TODO: Do something.
         }
 
         #endregion

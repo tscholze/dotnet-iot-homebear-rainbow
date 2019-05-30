@@ -109,7 +109,7 @@ namespace HomeBear.Rainbow.Controller
         /// Initializes the BMP async.
         /// This method has to be called before any other of this class.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Task.</returns>
         public async Task InitializeAsync()
         {
             // Setup settings.
@@ -157,8 +157,8 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// Reads temperatur from BMP280.
         /// </summary>
-        /// <returns>Read temperatur value.</returns>
-        public double ReadTemperatur()
+        /// <returns>Read temperature value.</returns>
+        public double ReadTemperature()
         {
             // Ensure BMP280 has been initialzed.
             if(!isInitialized)

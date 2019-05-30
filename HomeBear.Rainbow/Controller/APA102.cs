@@ -185,7 +185,7 @@ namespace HomeBear.Rainbow.Controller
             csPin.Write(GpioPinValue.High);
         }
 
-        private void PerformAction(BlinktControllerAction action, int? value, bool writeByte = false, int? index = null)
+        private void PerformAction(APA102Action action, int? value, bool writeByte = false, int? index = null)
         {
             // Get specified leds.
             List<APA102LED> specifiedLEDs;
@@ -201,30 +201,30 @@ namespace HomeBear.Rainbow.Controller
             // Perform action.
             switch (action)
             {
-                case BlinktControllerAction.TurnOn:
+                case APA102Action.TurnOn:
                     specifiedLEDs.ForEach(p => p.TurnOn());
                     break;
 
-                case BlinktControllerAction.TurnOff:
+                case APA102Action.TurnOff:
                     specifiedLEDs.ForEach(p => p.TurnOff());
                     break;
 
-                case BlinktControllerAction.ModifyBrightness:
+                case APA102Action.ModifyBrightness:
                     var brightnessValues = Convert.ToDecimal(value) / 100;
                     specifiedLEDs.ForEach(p => p.SetBrightness(brightnessValues));
                     break;
 
-                case BlinktControllerAction.ModifyRed:
+                case APA102Action.ModifyRed:
                     var redValue = Convert.ToInt32(value);
                     specifiedLEDs.ForEach(p => p.SetRed(redValue));
                     break;
 
-                case BlinktControllerAction.ModifyGreen:
+                case APA102Action.ModifyGreen:
                     var greenValue = Convert.ToInt32(value);
                     specifiedLEDs.ForEach(p => p.SetGreen(greenValue));
                     break;
 
-                case BlinktControllerAction.ModifyBlue:
+                case APA102Action.ModifyBlue:
                     var blueValue = Convert.ToInt32(value);
                     specifiedLEDs.ForEach(p => p.SetBlue(blueValue));
                     break;
@@ -250,7 +250,7 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="index">If set, only specified led will be modified.</param>
         public void TurnOn(int? index = null)
         {
-            PerformAction(BlinktControllerAction.TurnOn, null, true, index);
+            PerformAction(APA102Action.TurnOn, null, true, index);
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="index">If set, only specified led will be modified.</param>
         public void TurnOff(int? index = null)
         {
-            PerformAction(BlinktControllerAction.TurnOff, null, true, index);
+            PerformAction(APA102Action.TurnOff, null, true, index);
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="index">If set, only specified led will be modified.</param>
         public void SetBrightness(int value, bool writeByte = false, int? index = null)
         {
-            PerformAction(BlinktControllerAction.ModifyBrightness, value, writeByte, index);
+            PerformAction(APA102Action.ModifyBrightness, value, writeByte, index);
         }
 
         /// <summary>
@@ -283,7 +283,7 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="index">If set, only specified led will be modified.</param>
         public void SetRed(int value, bool writeByte = false, int? index = null)
         {
-            PerformAction(BlinktControllerAction.ModifyRed, value, writeByte, index);
+            PerformAction(APA102Action.ModifyRed, value, writeByte, index);
         }
 
         /// <summary>
@@ -295,7 +295,7 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="index">If set, only specified led will be modified.</param>
         public void SetGreen(int value, bool writeByte = false, int? index = null)
         {
-            PerformAction(BlinktControllerAction.ModifyGreen, value, writeByte, index);
+            PerformAction(APA102Action.ModifyGreen, value, writeByte, index);
         }
 
         /// <summary>
@@ -306,7 +306,7 @@ namespace HomeBear.Rainbow.Controller
         /// immediately written to the GPIO pins.</param>
         public void SetBlue(int value, bool writeByte = false, int? index = null)
         {
-            PerformAction(BlinktControllerAction.ModifyBlue, value, writeByte, index);
+            PerformAction(APA102Action.ModifyBlue, value, writeByte, index);
 
         }
 
@@ -320,18 +320,5 @@ namespace HomeBear.Rainbow.Controller
 
         #endregion
 
-    }
-
-    /// <summary>
-    /// Describes all available Blinkt controller actions per led.
-    /// </summary>
-    enum BlinktControllerAction
-    {
-        TurnOn,
-        TurnOff,
-        ModifyBrightness,
-        ModifyRed,
-        ModifyGreen,
-        ModifyBlue
     }
 }

@@ -147,6 +147,11 @@ namespace HomeBear.Rainbow.Controller
         /// </summary>
         public event EventHandler<RainbowHATEvent> CaptiveButtonPressed;
 
+        /// <summary>
+        /// Event that will be called if a temperatur value has been meassured.
+        /// </summary>
+        public event EventHandler<RainbowHATEvent> TemperaturMeassured;
+
         #endregion
 
         #region Public helpers
@@ -257,10 +262,14 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="timer">Underlying timer.</param>
         private void TemperaturValueReadTimer_Tick(ThreadPoolTimer timer)
         {
-            // Read and format values
-            var temp = bmp280.ReadTemperatur().ToString("0.00");
+            // Read and format values.
+            var temperature = bmp280.ReadTemperature();
+            var formattedTemperature = temperature.ToString("0.00");
             var time = DateTime.Now.ToString("{hh:mm:ss}");
-            Logger.Log(this, $"{time} -> Temperatur: {temp} C");
+            Logger.Log(this, $"{time} -> Temperatur: {formattedTemperature} C");
+
+            // Trigger event.
+            TemperaturMeassured(this, new RainbowHATEvent(temperature: temperature));
         }
 
 
