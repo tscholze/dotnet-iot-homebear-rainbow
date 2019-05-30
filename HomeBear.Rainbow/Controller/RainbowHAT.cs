@@ -307,7 +307,7 @@ namespace HomeBear.Rainbow.Controller
             var pressure = bmp280.ReadPressure();
             var formattedPressure = pressure.ToString("0.00");
             var time = DateTime.Now.ToString("{hh:mm:ss}");
-            Logger.Log(this, $"{time} -> Temperatur: {formattedPressure} C");
+            Logger.Log(this, $"{time} -> Pressure: {formattedPressure} hPa");
 
             // Trigger event
             PressureMeasured(this, new RainbowHATEvent(pressure: pressure));
