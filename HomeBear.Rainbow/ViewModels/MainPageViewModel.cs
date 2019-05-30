@@ -103,9 +103,10 @@ namespace HomeBear.Rainbow.ViewModel
                 TimeSpan.FromSeconds(1)
            );
 
-            // Setup events
+            // Setup event callbacks.
             rainbowHAT.CaptiveButtonPressed += CaptiveButtonPressed;
-            rainbowHAT.TemperaturMeassured += TemperaturMeassured;
+            rainbowHAT.TemperatureMeasured += TemperaturMeassured;
+            rainbowHAT.PressureMeasured += PressureMeasured;
         }
 
         #endregion
@@ -136,7 +137,7 @@ namespace HomeBear.Rainbow.ViewModel
         }
 
         /// <summary>
-        /// Handle temperature meassurements.
+        /// Handle temperature measurements.
         /// 
         /// </summary>
         /// <param name="sender">Sender object.</param>
@@ -144,6 +145,19 @@ namespace HomeBear.Rainbow.ViewModel
         private void TemperaturMeassured(object sender, RainbowHATEvent e)
         {
             Logger.Log(this, "TemperaturMeassured called");
+
+            // TODO: Do something.
+        }
+
+        /// <summary>
+        /// Handle pressure measurements.
+        /// 
+        /// </summary>
+        /// <param name="sender">Sender object.</param>
+        /// <param name="e">Event args.</param>
+        private void PressureMeasured(object sender, RainbowHATEvent e)
+        {
+            Logger.Log(this, "PressureMeasured called");
 
             // TODO: Do something.
         }

@@ -32,6 +32,16 @@ namespace HomeBear.Rainbow.Controller
         /// </summary>
         private static readonly int GPIO_NUMBER_BLUE = 26;
 
+        /// <summary>
+        /// Time span between button reads.
+        /// </summary>
+        private static readonly TimeSpan BUTTON_READ_INTERVAL = TimeSpan.FromMilliseconds(500);
+
+        /// <summary>
+        /// Time span between sensor reads.
+        /// </summary>
+        private static readonly TimeSpan SENSOR_READ_INTERVAL = TimeSpan.FromSeconds(5);
+
         #endregion
 
         #region Private properties
@@ -85,13 +95,19 @@ namespace HomeBear.Rainbow.Controller
         /// Timer that will trigger an input read of the
         /// button GPIO pin values.
         /// </summary>
-        private ThreadPoolTimer buttonsValueReadTimer;
+        private ThreadPoolTimer captiveButtonsValueReadTimer;
 
         /// <summary>
         /// Timer that will trigger an input read of the
-        /// button GPIO pin values.
+        /// temperature sensor.
         /// </summary>
-        private ThreadPoolTimer temperaturValueReadTimer;
+        private ThreadPoolTimer temperatureValueReadTimer;
+
+        /// <summary>
+        /// Timer that will trigger an input read of the
+        /// pressure sensor.
+        /// </summary>
+        private ThreadPoolTimer pressureValueReadTimer;
 
         #endregion
 
@@ -122,8 +138,9 @@ namespace HomeBear.Rainbow.Controller
         public void Dispose()
         {
             // Cancel timers
-            buttonsValueReadTimer.Cancel();
-            temperaturValueReadTimer.Cancel();
+            captiveButtonsValueReadTimer.Cancel();
+            temperatureValueReadTimer.Cancel();
+            pressureValueReadTimer.Cancel();
 
             // Dispose child controller
             apa102.Dispose();
@@ -150,7 +167,12 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// Event that will be called if a temperatur value has been meassured.
         /// </summary>
-        public event EventHandler<RainbowHATEvent> TemperaturMeassured;
+        public event EventHandler<RainbowHATEvent> TemperatureMeasured;
+
+        /// <summary>
+        /// Event that will be called if a pressure value has been meassured.
+        /// </summary>
+        public event EventHandler<RainbowHATEvent> PressureMeasured;
 
         #endregion
 
@@ -222,25 +244,23 @@ namespace HomeBear.Rainbow.Controller
             buttonCPin.SetDriveMode(GpioPinDriveMode.Input);
 
             // Setup timer.
-            buttonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(ButtonsValueReadTimer_Tick, 
-                TimeSpan.FromMilliseconds(500));
-            temperaturValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(TemperaturValueReadTimer_Tick, 
-                TimeSpan.FromSeconds(5));
+            captiveButtonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(CaptiveButtonsValueReadTimer_Tick, 
+                BUTTON_READ_INTERVAL);
+            temperatureValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(TemperatureValueReadTimer_Tick, 
+                SENSOR_READ_INTERVAL);
+            pressureValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(PreassureValueReadTimer_Tick,
+                SENSOR_READ_INTERVAL);
 
             // Initialze child devices
             await bmp280.InitializeAsync();
-
-            var p = bmp280.ReadPressure();
-
-            Logger.Log(this, $"PPPP -> {p}");
         }
 
         /// <summary>
         /// Triggered each time the ButtonsValueReadTimer ticks.
-        /// Will check if a captive button is currently pressed.
+        /// Will check if a captive button is currently pressed and triggeres `CaptiveButtonPressed`.
         /// </summary>
         /// <param name="timer">Underlying timer.</param>
-        private void ButtonsValueReadTimer_Tick(ThreadPoolTimer timer)
+        private void CaptiveButtonsValueReadTimer_Tick(ThreadPoolTimer timer)
         {
             if (buttonAPin.Read() == GpioPinValue.Low)
             {
@@ -260,11 +280,11 @@ namespace HomeBear.Rainbow.Controller
         }
 
         /// <summary>
-        /// Triggered each time the TemperaturValueReadTimer ticks.
-        /// Will read temperature value from bmp280.
+        /// Triggered each time the TemperatureValueReadTimer ticks.
+        /// Will read temperature value from BMP280 and triggers `TemperatureMeasured`.
         /// </summary>
         /// <param name="timer">Underlying timer.</param>
-        private void TemperaturValueReadTimer_Tick(ThreadPoolTimer timer)
+        private void TemperatureValueReadTimer_Tick(ThreadPoolTimer timer)
         {
             // Read and format values.
             var temperature = bmp280.ReadTemperature();
@@ -273,9 +293,25 @@ namespace HomeBear.Rainbow.Controller
             Logger.Log(this, $"{time} -> Temperatur: {formattedTemperature} C");
 
             // Trigger event.
-            TemperaturMeassured(this, new RainbowHATEvent(temperature: temperature));
+            TemperatureMeasured(this, new RainbowHATEvent(temperature: temperature));
         }
 
+        /// <summary>
+        /// Triggered each time the PreassureValueReadTimer ticks.
+        /// Will read temperature value from BMP280 and triggers `PressureMeasured`.
+        /// </summary>
+        /// <param name="timer">Underlying timer.</param>
+        private void PreassureValueReadTimer_Tick(ThreadPoolTimer timer)
+        {
+            // Read and format values.
+            var pressure = bmp280.ReadPressure();
+            var formattedPressure = pressure.ToString("0.00");
+            var time = DateTime.Now.ToString("{hh:mm:ss}");
+            Logger.Log(this, $"{time} -> Temperatur: {formattedPressure} C");
+
+            // Trigger event
+            PressureMeasured(this, new RainbowHATEvent(pressure: pressure));
+        }
 
         #endregion
     }

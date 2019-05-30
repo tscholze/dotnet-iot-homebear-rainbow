@@ -21,9 +21,11 @@ At the moment, it's just a headless application that is controlled by the input 
 - [x] Listen to 'A', 'B', 'C' capacitive touch buttons
 - [ ] 14-segment alphanumeric displays
 - [x] BMP280 temperature sensor
-- [ ] BMP280 pressure sensor
+- [x] BMP280 pressure sensor
 - [ ] BMP280 humidity sensor
 - [ ] Piezo buzzer
+
+All values could be wrong. Please report mismatches meassurements.
 
 ## Contributing
 
