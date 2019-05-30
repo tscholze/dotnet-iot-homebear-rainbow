@@ -4,6 +4,10 @@ namespace HomeBear.Rainbow.Controller
 {
     /// <summary>
     /// BMP280 calibration information.
+    /// 
+    /// Links:
+    ///     - Datasheet:
+    ///         http://www.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf
     /// </summary>
     class BMP280CalibrationInformation
     {

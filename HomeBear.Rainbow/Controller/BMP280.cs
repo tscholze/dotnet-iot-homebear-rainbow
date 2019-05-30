@@ -16,6 +16,9 @@ namespace HomeBear.Rainbow.Controller
     /// 
     ///     - Microsoft Sample code:
     ///        https://github.com/ms-iot/adafruitsample/blob/master/Lesson_203/FullSolution/BMP280.cs
+    ///        
+    ///     - Datasheet:
+    ///         http://www.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf
     /// </summary>
     class BMP280 : IDisposable
     {
@@ -289,14 +292,15 @@ namespace HomeBear.Rainbow.Controller
                 return 0; 
             }
 
-            //Perform calibration operations as per datasheet: http://www.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf
+            // Perform calibration operations as per datasheet: 
             long pressure = 1048576 - rawValue;
             pressure = (((pressure << 31) - part2) * 3125) / part1;
             part1 = (calibrationInformation.Pressure9 * (pressure >> 13) * (pressure >> 13)) >> 25;
             part2 = (calibrationInformation.Pressure8 * pressure) >> 19;
             pressure = ((pressure + part1 + part2) >> 8) + ((long)calibrationInformation.Pressure7 << 4);
 
-            // Return calculated pressure.
+            // TRansform pressure to hPa
+            pressure = pressure / 256 / 1000;
             return pressure;
         }
 
@@ -339,7 +343,7 @@ namespace HomeBear.Rainbow.Controller
                 Pressure6 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_6),
                 Pressure7 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_7),
                 Pressure8 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_8),
-
+                Pressure9 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_PRESSURE_9)
             };
 
             // Ensure that every request has been read and processed.
