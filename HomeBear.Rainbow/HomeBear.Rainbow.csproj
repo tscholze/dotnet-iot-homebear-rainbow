@@ -123,6 +123,7 @@
     <Compile Include="Controller\APA102Action.cs" />
     <Compile Include="Controller\BMP280.cs" />
     <Compile Include="Controller\BMP280CalibrationInformation.cs" />
+    <Compile Include="Controller\HT16K33.cs" />
     <Compile Include="Controller\RainbowHAT.cs" />
     <Compile Include="Controller\RainbowHATAction.cs" />
     <Compile Include="Controller\RainbowHATButtonSource.cs" />
