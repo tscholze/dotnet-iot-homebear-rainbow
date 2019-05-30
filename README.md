@@ -20,7 +20,9 @@ At the moment, it's just a headless application that is controlled by the input 
 - [x] Seven APA102 multicolour LEDs
 - [x] Listen to 'A', 'B', 'C' capacitive touch buttons
 - [ ] 14-segment alphanumeric displays
-- [ ] BMP280 temperature and pressure sensor
+- [x] BMP280 temperature sensor
+- [ ] BMP280 pressure sensor
+- [ ] BMP280 humidity sensor
 - [ ] Piezo buzzer
 
 ## Contributing
@@ -34,7 +36,8 @@ Just me, [Tobi]([https://tscholze.github.io).
 ## Thanks to
 
 * Pimoroni [Discord](https://discordapp.com/invite/hr93ByC) Community
-* [MarcJenningsUK](https://github.com/MarcJenningsUK/PimoroniSharp) - PimoroniSharp
+* Pimoroni Python [source](https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/bmp280.py)
+* [Microsoft IoT Samples](https://github.com/ms-iot/adafruitsample/blob/master/Lesson_203/FullSolution/BMP280.cs)
 
 ## License
 
