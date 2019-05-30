@@ -103,6 +103,12 @@ namespace HomeBear.Rainbow.ViewModel
             rainbowHAT.CaptiveButtonPressed += CaptiveButtonPressed;
         }
 
+        /// <summary>
+        /// Handle captive button presses.
+        /// 
+        /// </summary>
+        /// <param name="sender">Sender object.</param>
+        /// <param name="e">Args.</param>
         private void CaptiveButtonPressed(object sender, RainbowHATEvent e)
         {
             Logger.Log(this, "CaptiveButtonPressed called");

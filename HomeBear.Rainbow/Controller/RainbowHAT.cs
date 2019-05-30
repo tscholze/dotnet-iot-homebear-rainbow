@@ -104,7 +104,7 @@ namespace HomeBear.Rainbow.Controller
                 throw new OperationCanceledException("Operation canceled due missing GPIO controller");
             }
 
-            Init();
+            InitAsync();
         }
         #endregion
 
@@ -186,7 +186,7 @@ namespace HomeBear.Rainbow.Controller
         ///     This is required before accessing other
         ///     methods in this class.
         /// </summary>
-        private void Init()
+        private async void InitAsync()
         {
             Logger.Log(this, "Init");
 
@@ -211,6 +211,8 @@ namespace HomeBear.Rainbow.Controller
 
             // Setup timer.
             buttonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(ButtonsValueReadTimer_Tick, TimeSpan.FromMilliseconds(500));
+
+            await bmp280.InitializeAsync();
         }
 
         /// <summary>
