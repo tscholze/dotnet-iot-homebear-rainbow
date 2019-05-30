@@ -1,8 +1,5 @@
 ﻿using HomeBear.Rainbow.Utils;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
 using Windows.Devices.Gpio;
@@ -10,8 +7,16 @@ using Windows.Devices.I2c;
 
 namespace HomeBear.Rainbow.Controller
 {
-    // https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/bmp280.py
-    // https://github.com/ms-iot/adafruitsample/blob/master/Lesson_203/FullSolution/BMP280.cs
+    /// <summary>
+    /// BMP280 controller.
+    /// 
+    /// Links:
+    ///     - Pimoroni original code:
+    ///         https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/bmp280.py
+    /// 
+    ///     - Microsoft Sample code:
+    ///        https://github.com/ms-iot/adafruitsample/blob/master/Lesson_203/FullSolution/BMP280.cs
+    /// </summary>
     class BMP280 : IDisposable
     {
         #region Private constants
@@ -100,6 +105,11 @@ namespace HomeBear.Rainbow.Controller
 
         #region Public helpers
 
+        /// <summary>
+        /// Initializes the BMP async.
+        /// This method has to be called before any other of this class.
+        /// </summary>
+        /// <returns></returns>
         public async Task InitializeAsync()
         {
             // Setup settings.
@@ -142,19 +152,21 @@ namespace HomeBear.Rainbow.Controller
 
             // Write /enable(?) control register
             await WriteControlRegister();
-
-            var t = ReadTemperatur();
-            Logger.Log(this, $"TEMP: {t}");
-
         }
         
+        /// <summary>
+        /// Reads temperatur from BMP280.
+        /// </summary>
+        /// <returns>Read temperatur value.</returns>
         public double ReadTemperatur()
         {
+            // Ensure BMP280 has been initialzed.
             if(!isInitialized)
             {
                 Logger.Log(this, "BMP has not been initialized, yet. Call `InitializeAsync()` at very first operation.");
                 return 0;
             }
+
             // Get byte values from I2C device.
             byte msb = ReadByte(REGISTER_MSB_TEMPERATUR);
             byte lsb = ReadByte(REGISTER_LSB_TEMPERATUR);
@@ -176,15 +188,23 @@ namespace HomeBear.Rainbow.Controller
 
         #region IDisposeable
 
+        /// <summary>
+        /// Will dispose all related attributes.
+        /// </summary>
         public void Dispose()
         {
-
+            bmp280.Dispose();
+            isInitialized = false;
         }
 
         #endregion
 
         #region Private Helpers 
 
+        /// <summary>
+        /// Reads calibration information from BMP280.
+        /// </summary>
+        /// <returns>Task.</returns>
         private async Task<BMP280CalibrationInformation> ReadCalibrationInformation()
         {
             // Read information from I2C device.
@@ -203,6 +223,11 @@ namespace HomeBear.Rainbow.Controller
             return information;
         }
 
+        /// <summary>
+        /// Reads a UInt in Little Endian format from given register.
+        /// </summary>
+        /// <param name="register">Register to read from.</param>
+        /// <returns>Read UInt value.</returns>
         private ushort ReadUIntFromLittleEndian(byte register)
         {
             // Setup values and buffers to read from register.
@@ -216,6 +241,11 @@ namespace HomeBear.Rainbow.Controller
             return (ushort)((readBuffer[1] << 8) + readBuffer[0]);
         }
 
+        /// <summary>
+        /// Reads a byte from given register.
+        /// </summary>
+        /// <param name="register">Register to read from.</param>
+        /// <returns>Read byte value.</returns>
         private byte ReadByte(byte register)
         {
             // Setup values and buffers to read from register.
@@ -229,8 +259,13 @@ namespace HomeBear.Rainbow.Controller
             return readBuffer[0];
         }
 
+        /// <summary>
+        /// Writes into the control register.
+        /// </summary>
+        /// <returns>Task.</returns>
         private async Task WriteControlRegister()
         {
+            // Write into control register.
             byte[] writeBuffer = new byte[] { REGISTER_CONTROL, 0x3F };
             bmp280.Write(writeBuffer);
 

@@ -87,6 +87,12 @@ namespace HomeBear.Rainbow.Controller
         /// </summary>
         private ThreadPoolTimer buttonsValueReadTimer;
 
+        /// <summary>
+        /// Timer that will trigger an input read of the
+        /// button GPIO pin values.
+        /// </summary>
+        private ThreadPoolTimer temperaturValueReadTimer;
+
         #endregion
 
         #region Constructor & Deconstructor
@@ -117,6 +123,7 @@ namespace HomeBear.Rainbow.Controller
         {
             // Cancel timers
             buttonsValueReadTimer.Cancel();
+            temperaturValueReadTimer.Cancel();
 
             // Dispose child controller
             apa102.Dispose();
@@ -210,8 +217,12 @@ namespace HomeBear.Rainbow.Controller
             buttonCPin.SetDriveMode(GpioPinDriveMode.Input);
 
             // Setup timer.
-            buttonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(ButtonsValueReadTimer_Tick, TimeSpan.FromMilliseconds(500));
+            buttonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(ButtonsValueReadTimer_Tick, 
+                TimeSpan.FromMilliseconds(500));
+            temperaturValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(TemperaturValueReadTimer_Tick, 
+                TimeSpan.FromSeconds(5));
 
+            // Initialze child devices
             await bmp280.InitializeAsync();
         }
 
@@ -238,6 +249,20 @@ namespace HomeBear.Rainbow.Controller
                 CaptiveButtonPressed(this, new RainbowHATEvent(RainbowHATButtonSource.CaptiveC));
             }
         }
+
+        /// <summary>
+        /// Triggered each time the TemperaturValueReadTimer ticks.
+        /// Will read temperature value from bmp280.
+        /// </summary>
+        /// <param name="timer">Underlying timer.</param>
+        private void TemperaturValueReadTimer_Tick(ThreadPoolTimer timer)
+        {
+            // Read and format values
+            var temp = bmp280.ReadTemperatur().ToString("0.00");
+            var time = DateTime.Now.ToString("{hh:mm:ss}");
+            Logger.Log(this, $"{time} -> Temperatur: {temp} C");
+        }
+
 
         #endregion
     }

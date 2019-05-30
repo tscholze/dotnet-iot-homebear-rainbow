@@ -16,7 +16,7 @@ namespace HomeBear.Rainbow.Controller
     ///     - PimoroniSharp port of the mostly similar Blinkt!:
     ///         https://github.com/MarcJenningsUK/PimoroniSharp/blob/master/Pimoroni.Blinkt/Blinkt.cs
     /// </summary>
-    partial class APA102: IDisposable
+    partial class APA102 : IDisposable
     {
         #region Private constants
 
@@ -124,7 +124,6 @@ namespace HomeBear.Rainbow.Controller
             dataPin.Dispose();
             csPin.Dispose();
         }
-
 
         #endregion
 
