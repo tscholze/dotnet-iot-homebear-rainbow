@@ -79,7 +79,7 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// System's default GPIO controller.
         /// </summary>
-        private GpioController gpioController = GpioController.GetDefault();
+        private readonly GpioController gpioController = GpioController.GetDefault();
 
         /// <summary>
         /// Underlying BMP280 device.
@@ -190,7 +190,6 @@ namespace HomeBear.Rainbow.Controller
             // Read information from I2C device.
             var information = new BMP280CalibrationInformation
             {
-
                 // Read temperatur calibration information
                 Temperatur1 = ReadUIntFromLittleEndian(REGISTER_DIGIT_TEMPERATUR_1),
                 Temperatur2 = (short)ReadUIntFromLittleEndian(REGISTER_DIGIT_TEMPERATUR_2),
@@ -214,7 +213,7 @@ namespace HomeBear.Rainbow.Controller
             bmp280.WriteRead(writeBuffer, readBuffer);
 
             // Calculate resulting value.
-            return (ushort)(readBuffer[0] + readBuffer[1] << 8);
+            return (ushort)((readBuffer[1] << 8) + readBuffer[0]);
         }
 
         private byte ReadByte(byte register)
@@ -232,7 +231,6 @@ namespace HomeBear.Rainbow.Controller
 
         private async Task WriteControlRegister()
         {
-            // TODO: Why 0x3F
             byte[] writeBuffer = new byte[] { REGISTER_CONTROL, 0x3F };
             bmp280.Write(writeBuffer);
 
