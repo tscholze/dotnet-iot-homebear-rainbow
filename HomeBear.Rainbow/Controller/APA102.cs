@@ -1,4 +1,6 @@
-﻿using System;
+﻿using HomeBear.Rainbow.Utils;
+using Microsoft.IoT.Lightning.Providers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.Devices.Gpio;
@@ -57,22 +59,22 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// GPIO pin for the data value.
         /// </summary>
-        private readonly GpioPin dataPin;
+        private GpioPin dataPin;
 
         /// <summary>
         /// GPIO pin for the clock value.
         /// </summary>
-        private readonly GpioPin clockPin;
+        private GpioPin clockPin;
 
         /// <summary>
         /// GPIO pin for the clear signal value;
         /// </summary>
-        private readonly GpioPin csPin;
+        private GpioPin csPin;
 
         /// <summary>
         /// List of all led leds.
         /// </summary>
-        private readonly APA102LED[] leds = new APA102LED[NUMBER_OF_LEDS];
+        private APA102LED[] leds = new APA102LED[NUMBER_OF_LEDS];
 
         #endregion
 
@@ -85,28 +87,7 @@ namespace HomeBear.Rainbow.Controller
         /// </summary>
         public APA102()
         {
-            // Setup list.
-            for (int i = 0; i < NUMBER_OF_LEDS; i++)
-            {
-                leds[i] = new APA102LED();
-            }
-
-            // Ensure required instance are set.
-            if (gpioController == null)
-            {
-                return;
-                throw new Exception("Default GPIO controller not found.");
-            }
-
-            // Setup pins.
-            dataPin = gpioController.OpenPin(GPIO_NUMBER_DATA);
-            clockPin = gpioController.OpenPin(GPIO_NUMBER_CLOCK);
-            csPin = gpioController.OpenPin(8);
-            dataPin.SetDriveMode(GpioPinDriveMode.Output);
-            clockPin.SetDriveMode(GpioPinDriveMode.Output);
-            csPin.SetDriveMode(GpioPinDriveMode.Output);
-
-            WriteLEDValues();
+            InitializeAsync();
         }
 
         #endregion
@@ -129,6 +110,55 @@ namespace HomeBear.Rainbow.Controller
 
         #region Private helper
 
+        /// <summary>
+        /// Initializes the APA102 async.
+        /// 
+        /// Caution:
+        ///     This is required before accessing other
+        ///     methods in this class.
+        /// </summary>
+        /// <returns>Task.</returns>
+        private async void InitializeAsync()
+        {
+            Logger.Log(this, "InitializeAsync");
+
+            // Check if drivers are enabled
+            if (!LightningProvider.IsLightningEnabled)
+            {
+                Logger.Log(this, "LightningProvider not enabled. Returning.");
+                return;
+            }
+
+            // Setup GPIO controller
+            Logger.Log(this, "Checking for GPIO controller");
+            var gpioControllers = await GpioController.GetControllersAsync(LightningGpioProvider.GetGpioProvider());
+            if (gpioControllers == null || gpioControllers.Count < 1)
+            {
+                throw new OperationCanceledException("Operation canceled due missing GPIO controller");
+            }
+            gpioController = gpioControllers[0];
+
+            // Setup list.
+            for (int i = 0; i < NUMBER_OF_LEDS; i++)
+            {
+                leds[i] = new APA102LED();
+            }
+
+            // Setup pins.
+            dataPin = gpioController.OpenPin(GPIO_NUMBER_DATA);
+            clockPin = gpioController.OpenPin(GPIO_NUMBER_CLOCK);
+            csPin = gpioController.OpenPin(8);
+            dataPin.SetDriveMode(GpioPinDriveMode.Output);
+            clockPin.SetDriveMode(GpioPinDriveMode.Output);
+            csPin.SetDriveMode(GpioPinDriveMode.Output);
+
+            WriteLEDValues();
+        }
+
+        /// <summary>
+        /// Sets the clock state to locked or unlocked.
+        /// </summary>
+        /// <param name="locked">New locked state.</param>
         private void SetClockState(bool locked)
         {
             // Get the number of required pulses.
@@ -145,7 +175,11 @@ namespace HomeBear.Rainbow.Controller
             }
         }
 
-        private void WriteLED(APA102LED led)
+        /// <summary>
+        /// Writes an LED value to the device.
+        /// </summary>
+        /// <param name="led">LED value to write.</param>
+        private void WriteLEDValue(APA102LED led)
         {
             var sendBright = (int)((31.0m * led.Brightness)) & 31;
             WriteByte(Convert.ToByte(224 | sendBright));
@@ -154,6 +188,30 @@ namespace HomeBear.Rainbow.Controller
             WriteByte(Convert.ToByte(led.Red));
         }
 
+        /// <summary>
+        /// Writes all LED values to the device.
+        /// </summary>
+        private void WriteLEDValues()
+        {
+            // Prepare for writing to APA102.
+            csPin.Write(GpioPinValue.Low);
+            SetClockState(true);
+
+            // Update each LED.
+            foreach (var led in leds)
+            {
+                WriteLEDValue(led);
+            }
+
+            // Raise update signal.
+            SetClockState(false);
+            csPin.Write(GpioPinValue.High);
+        }
+
+        /// <summary>
+        /// Writes an input byte to the device.
+        /// </summary>
+        /// <param name="input">Input byte to write.</param>
         private void WriteByte(byte input)
         {
             int value;
@@ -168,23 +226,13 @@ namespace HomeBear.Rainbow.Controller
             }
         }
 
-        private void WriteLEDValues()
-        {
-            // Prepare for writing to APA102.
-            csPin.Write(GpioPinValue.Low);
-            SetClockState(true);
-
-            // Update each LED.
-            foreach (var led in leds)
-            {
-                WriteLED(led);
-            }
-
-            // Raise update signal.
-            SetClockState(false);
-            csPin.Write(GpioPinValue.High);
-        }
-
+        /// <summary>
+        /// Performs given action.
+        /// </summary>
+        /// <param name="action">Action to perform.</param>
+        /// <param name="value">Optional value of the action.</param>
+        /// <param name="writeByte">If true, changes will be written to the device.</param>
+        /// <param name="index">Optional index of the action.</param>
         private void PerformAction(APA102Action action, int? value, bool writeByte = false, int? index = null)
         {
             // Get specified leds.

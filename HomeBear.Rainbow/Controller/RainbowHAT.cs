@@ -1,6 +1,8 @@
 ﻿using HomeBear.Rainbow.Utils;
+using Microsoft.IoT.Lightning.Providers;
 using System;
 using Windows.Devices.Gpio;
+using Windows.Devices.Pwm;
 using Windows.System.Threading;
 
 namespace HomeBear.Rainbow.Controller
@@ -10,8 +12,11 @@ namespace HomeBear.Rainbow.Controller
     /// Use the `Default` property to access this controller.
     /// 
     /// Links:
-    ///     - Pimoroni: https://shop.pimoroni.com/products/rainbow-hat-for-android-things
-    ///     - Scheme: https://pinout.xyz/pinout/rainbow_hat
+    ///     - Pimoroni:
+    ///         https://shop.pimoroni.com/products/rainbow-hat-for-android-things
+    ///         https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/buzzer.py
+    ///     - Scheme: 
+    ///         https://pinout.xyz/pinout/rainbow_hat
     /// </summary>
     partial class RainbowHAT: IDisposable
     {
@@ -33,6 +38,11 @@ namespace HomeBear.Rainbow.Controller
         private static readonly int GPIO_NUMBER_BLUE = 26;
 
         /// <summary>
+        /// GPIO (BCM) pin number of the buzzer (piezo) element.
+        /// </summary>
+        private static readonly int GPIO_NUMBER_BUZZER = 13;
+
+        /// <summary>
         /// Time span between button reads.
         /// </summary>
         private static readonly TimeSpan BUTTON_READ_INTERVAL = TimeSpan.FromMilliseconds(500);
@@ -49,7 +59,12 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// Default gpio controller of the system.
         /// </summary>
-        private GpioController gpioController = GpioController.GetDefault();
+        private GpioController gpioController;
+
+        /// <summary>
+        /// Default pwm controller of the system.
+        /// </summary>
+        private PwmController pwmController;
 
         /// <summary>
         /// GPIO pin of the red LED.
@@ -80,6 +95,8 @@ namespace HomeBear.Rainbow.Controller
         /// GPIO pin of the C button.
         /// </summary>
         private GpioPin buttonCPin;
+
+        private PwmPin buzzerPin;
 
         /// <summary>
         /// Default APA102 controller.
@@ -118,16 +135,9 @@ namespace HomeBear.Rainbow.Controller
         /// </summary>
         public RainbowHAT()
         {
-            gpioController = GpioController.GetDefault();
-
-            // Ensure that we have a valid gpio connection
-            if (gpioController == null)
-            {
-                throw new OperationCanceledException("Operation canceled due missing GPIO controller");
-            }
-
-            InitAsync();
+            InitializeAsync();
         }
+
         #endregion
 
         #region Disposeable
@@ -220,11 +230,39 @@ namespace HomeBear.Rainbow.Controller
         ///     This is required before accessing other
         ///     methods in this class.
         /// </summary>
-        private async void InitAsync()
+        private async void InitializeAsync()
         {
-            Logger.Log(this, "Init");
+            Logger.Log(this, "InitializeAsync");
+            Logger.Log(this, "Checking for LightningProvider");
+            // Check if drivers are enabled
+            if (!LightningProvider.IsLightningEnabled)
+            {
+                Logger.Log(this, "LightningProvider not enabled. Returning.");
+                return;
+            }
+
+            // Setup PWM controller
+            Logger.Log(this, "Checking for PWM controller");
+            var pwmControllers = await PwmController.GetControllersAsync(LightningPwmProvider.GetPwmProvider());
+            if (pwmControllers == null || pwmControllers.Count < 2)
+            {
+                throw new OperationCanceledException("Operation canceled due missing PWM controller");
+            }
+
+            pwmController = pwmControllers[1];
+            pwmController.SetDesiredFrequency(50);
+
+            // Setup GPIO controller
+            Logger.Log(this, "Checking for GPIO controller");
+            var gpioControllers = await GpioController.GetControllersAsync(LightningGpioProvider.GetGpioProvider());
+            if (gpioControllers == null || gpioControllers.Count < 1)
+            {
+                throw new OperationCanceledException("Operation canceled due missing GPIO controller");
+            }
+            gpioController = gpioControllers[0];
 
             // Setup LEDs.
+            Logger.Log(this, "Setup LEDs");
             redPin = gpioController.OpenPin(GPIO_NUMBER_RED);
             redPin.Write(GpioPinValue.Low);
             redPin.SetDriveMode(GpioPinDriveMode.Output);
@@ -236,6 +274,7 @@ namespace HomeBear.Rainbow.Controller
             bluePin.SetDriveMode(GpioPinDriveMode.Output);
 
             // Setup buttons
+            Logger.Log(this, "Setup buttons");
             buttonAPin = gpioController.OpenPin(21);
             buttonAPin.SetDriveMode(GpioPinDriveMode.Input);
             buttonBPin = gpioController.OpenPin(20);
@@ -243,15 +282,23 @@ namespace HomeBear.Rainbow.Controller
             buttonCPin = gpioController.OpenPin(16);
             buttonCPin.SetDriveMode(GpioPinDriveMode.Input);
 
+            // Setup buzzer
+            Logger.Log(this, "Setup buzzers / servos / motors");
+            buzzerPin = pwmController.OpenPin(GPIO_NUMBER_BUZZER);
+            buzzerPin.SetActiveDutyCyclePercentage(0.05);
+            buzzerPin.Start();
+
             // Setup timer.
-            captiveButtonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(CaptiveButtonsValueReadTimer_Tick, 
+            Logger.Log(this, "Setup timers");
+            captiveButtonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(CaptiveButtonsValueReadTimer_Tick,
                 BUTTON_READ_INTERVAL);
-            temperatureValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(TemperatureValueReadTimer_Tick, 
+            temperatureValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(TemperatureValueReadTimer_Tick,
                 SENSOR_READ_INTERVAL);
             pressureValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(PreassureValueReadTimer_Tick,
                 SENSOR_READ_INTERVAL);
 
             // Initialze child devices
+            Logger.Log(this, "Setup BMP280");
             await bmp280.InitializeAsync();
         }
 

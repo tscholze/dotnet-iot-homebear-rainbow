@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HomeBear.Rainbow.Utils;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
@@ -190,12 +191,17 @@ namespace HomeBear.Rainbow.Controller
         #region Public helper
 
         /// <summary>
-        /// Initializes the BMP async.
-        /// This method has to be called before any other of this class.
+        /// Initializes the HT16K33 async.
+        /// 
+        /// Caution:
+        ///     This is required before accessing other
+        ///     methods in this class.
         /// </summary>
         /// <returns>Task.</returns>
         public async Task InitializeAsync()
         {
+            Logger.Log(this, "InitializeAsync");
+
             // Setup settings.
             I2cConnectionSettings settings = new I2cConnectionSettings(HT16K33_ADDRESS)
             {

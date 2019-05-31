@@ -1,4 +1,5 @@
 ﻿using HomeBear.Rainbow.Utils;
+using Microsoft.IoT.Lightning.Providers;
 using System;
 using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
@@ -23,11 +24,6 @@ namespace HomeBear.Rainbow.Controller
     class BMP280 : IDisposable
     {
         #region Private constants
-
-        /// <summary>
-        /// Name of the I2C controller.
-        /// </summary>
-        private static readonly string I2C_CONTROLLER_NAME = "I2C1";
 
         /// <summary>
         /// I2C adress of the BMP280.
@@ -169,12 +165,24 @@ namespace HomeBear.Rainbow.Controller
         #region Public helpers
 
         /// <summary>
-        /// Initializes the BMP async.
-        /// This method has to be called before any other of this class.
+        /// Initializes the BMP280 async.
+        /// 
+        /// Caution:
+        ///     This is required before accessing other
+        ///     methods in this class.
         /// </summary>
         /// <returns>Task.</returns>
         public async Task InitializeAsync()
         {
+            Logger.Log(this, "InitializeAsync");
+
+            // Check if drivers are enabled
+            if (!LightningProvider.IsLightningEnabled)
+            {
+                Logger.Log(this, "LightningProvider not enabled. Returning.");
+                return;
+            }
+
             // Setup settings.
             I2cConnectionSettings settings = new I2cConnectionSettings(BMP280_ADDRESS)
             {
@@ -182,9 +190,9 @@ namespace HomeBear.Rainbow.Controller
             };
 
             // Find i2c device.
-            string deviceSelector = I2cDevice.GetDeviceSelector(I2C_CONTROLLER_NAME);
-            DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(deviceSelector);
-            bmp280 = await I2cDevice.FromIdAsync(devices[0].Id, settings);
+            var i2cControllers = await I2cController.GetControllersAsync(LightningI2cProvider.GetI2cProvider());
+            var i2cController = i2cControllers[0];
+            bmp280 = i2cController.GetDevice(settings);
 
             // Ensure device has been found.
             if(bmp280 == null)
