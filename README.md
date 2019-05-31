@@ -8,6 +8,7 @@
 - Windows 10
 - Visual Studio 2019
 - Raspbbery Pi 3 (B) with [Windows 10 IoT Core](https://developer.microsoft.com/en-us/windows/iot) 17763 or higher
+- Enabled Dynamic driver mode in Windows 10 IoT Core
 - [Pimoroni RainbowHAT](https://shop.pimoroni.com/products/rainbow-hat-for-android-things)
 
 ## How it looks
@@ -20,10 +21,9 @@ At the moment, it's just a headless application that is controlled by the input 
 - [x] Seven APA102 multicolour LEDs
 - [x] Listen to 'A', 'B', 'C' capacitive touch buttons
 - [ ] 14-segment alphanumeric displays
+- [x] Piezo buzzer
 - [x] BMP280 temperature sensor
 - [x] BMP280 pressure sensor
-- [ ] BMP280 humidity sensor
-- [ ] Piezo buzzer
 
 All values could be wrong. Please report mismatches meassurements.
 
