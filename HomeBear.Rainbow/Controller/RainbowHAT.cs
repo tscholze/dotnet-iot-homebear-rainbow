@@ -96,6 +96,9 @@ namespace HomeBear.Rainbow.Controller
         /// </summary>
         private GpioPin buttonCPin;
 
+        /// <summary>
+        /// PWM pin of the buzzer.
+        /// </summary>
         private PwmPin buzzerPin;
 
         /// <summary>
@@ -212,6 +215,11 @@ namespace HomeBear.Rainbow.Controller
                     apa102.TurnOff();
                     break;
 
+                case RainbowHATAction.Buzz:
+                    buzzerPin.Start();
+                    ThreadPoolTimer.CreatePeriodicTimer((ThreadPoolTimer threadPoolTimer) => { buzzerPin.Stop(); }, TimeSpan.FromMilliseconds(500));
+                    break;
+
                 default:
                     Logger.Log(this, $"Unknown action should be performed: {action}");
                     break;
@@ -285,8 +293,8 @@ namespace HomeBear.Rainbow.Controller
             // Setup buzzer
             Logger.Log(this, "Setup buzzers / servos / motors");
             buzzerPin = pwmController.OpenPin(GPIO_NUMBER_BUZZER);
+            buzzerPin.Stop();
             buzzerPin.SetActiveDutyCyclePercentage(0.05);
-            buzzerPin.Start();
 
             // Setup timer.
             Logger.Log(this, "Setup timers");
@@ -309,6 +317,7 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="timer">Underlying timer.</param>
         private void CaptiveButtonsValueReadTimer_Tick(ThreadPoolTimer timer)
         {
+            // Check which button has been pressed.
             if (buttonAPin.Read() == GpioPinValue.Low)
             {
                 Logger.Log(this, "'A'-Button tapped!");

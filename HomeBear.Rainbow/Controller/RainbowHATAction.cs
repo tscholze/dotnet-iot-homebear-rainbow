@@ -36,13 +36,18 @@
         TurnOffBlue,
 
         /// <summary>
-        /// Turns on all LEDs of the APA102
+        /// Turns on all LEDs of the APA102.
         /// </summary>
         LEDsOn,
 
         /// <summary>
-        /// Turns off all LEDs of the APA102
+        /// Turns off all LEDs of the APA102.
         /// </summary>
-        LEDsOff
+        LEDsOff,
+
+        /// <summary>
+        /// Buzzes the piezzo element for a given time span.
+        /// </summary>
+        Buzz
     }
 }

@@ -123,8 +123,11 @@ namespace HomeBear.Rainbow.ViewModel
         {
             Logger.Log(this, "CaptiveButtonPressed called");
 
+            // Buzz the piezo.
+            rainbowHAT.PerformAction(RainbowHATAction.Buzz);
+
             // Check which button has been pressed.
-            if(e.Button == RainbowHATButtonSource.CaptiveA)
+            if (e.Button == RainbowHATButtonSource.CaptiveA)
             {
                 rainbowHAT.PerformAction(RainbowHATAction.TurnOnRed);
                 rainbowHAT.PerformAction(RainbowHATAction.LEDsOn);
