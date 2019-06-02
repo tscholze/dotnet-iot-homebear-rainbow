@@ -50,7 +50,7 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// Time span between sensor reads.
         /// </summary>
-        private static readonly TimeSpan SENSOR_READ_INTERVAL = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan SENSOR_READ_INTERVAL = TimeSpan.FromSeconds(10);
 
         #endregion
 
@@ -110,6 +110,11 @@ namespace HomeBear.Rainbow.Controller
         /// Default BMP280 controller.
         /// </summary>
         private readonly BMP280 bmp280 = new BMP280();
+
+        /// <summary>
+        /// Default HT16K33 controller.
+        /// </summary>
+        private readonly HT16K33 ht16k33 = new HT16K33();
 
         /// <summary>
         /// Timer that will trigger an input read of the
@@ -308,6 +313,9 @@ namespace HomeBear.Rainbow.Controller
             // Initialze child devices
             Logger.Log(this, "Setup BMP280");
             await bmp280.InitializeAsync();
+
+            Logger.Log(this, "Setup HT16K33");
+            await ht16k33.InitializeAsync();
         }
 
         /// <summary>
