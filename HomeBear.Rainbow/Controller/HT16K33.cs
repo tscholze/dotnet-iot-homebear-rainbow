@@ -4,13 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Devices.Enumeration;
 using Windows.Devices.I2c;
 
 namespace HomeBear.Rainbow.Controller
 {
     // https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/alphanum4.py
     // https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/HT16K33.py
+    // https://gist.github.com/joefutrelle/662c9245231158f886af
     class HT16K33 : IDisposable
     {
         #region Private constants
@@ -18,7 +18,7 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// Maps chars to binary repräsentation.
         /// </summary>
-        private static Dictionary<char, int> DIGIT_DICTIONARY = new Dictionary<char, int>{
+        private static readonly Dictionary<char, int> DIGIT_DICTIONARY = new Dictionary<char, int>{
             { ' ', 0b0000000000000000 },
             { '!', 0b0000000000000110 },
             { '"', 0b0000001000100000 },
