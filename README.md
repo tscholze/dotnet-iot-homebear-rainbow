@@ -20,12 +20,20 @@ At the moment, it's just a headless application that is controlled by the input 
 - [x] Control the large R, G, B LEDs
 - [x] Seven APA102 multicolour LEDs
 - [x] Listen to 'A', 'B', 'C' capacitive touch buttons
-- [ ] 14-segment alphanumeric displays
+- [x] 14-segment alphanumeric displays
 - [x] Piezo buzzer
 - [x] BMP280 temperature sensor
 - [x] BMP280 pressure sensor
 
-All values could be wrong. Please report mismatches meassurements.
+**Keep in mind**
+* All features have room for huge improvments.
+* All values could be wrong. Please report mismatches meassurements.
+
+## Known issues
+- Piezo buzzer: Buzzes on start up
+- 14-segment alphanumeric displays: Bitmask does not always contain correct values
+- 14-segment alphanumeric displays: Flickers
+- BMP280 pressure sensor: Is always around 90 hPa.
 
 ## Contributing
 

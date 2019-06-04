@@ -1,6 +1,7 @@
 ﻿using HomeBear.Rainbow.Utils;
 using Microsoft.IoT.Lightning.Providers;
 using System;
+using Windows.Devices;
 using Windows.Devices.Gpio;
 using Windows.Devices.Pwm;
 using Windows.System.Threading;
@@ -253,6 +254,9 @@ namespace HomeBear.Rainbow.Controller
                 Logger.Log(this, "LightningProvider not enabled. Returning.");
                 return;
             }
+
+            // Aggregate provider.
+            LowLevelDevicesController.DefaultProvider = LightningProvider.GetAggregateProvider();
 
             // Setup PWM controller
             Logger.Log(this, "Checking for PWM controller");
