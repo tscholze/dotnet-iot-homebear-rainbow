@@ -233,7 +233,7 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="value">Optional value of the action.</param>
         /// <param name="writeByte">If true, changes will be written to the device.</param>
         /// <param name="index">Optional index of the action.</param>
-        private void PerformAction(APA102Action action, int? value, bool writeByte = false, int? index = null)
+        private void PerformAction(APA102Action action, int? value = null, bool writeByte = false, int? index = null)
         {
             // Get specified leds.
             List<APA102LED> specifiedLEDs;
@@ -277,6 +277,16 @@ namespace HomeBear.Rainbow.Controller
                     specifiedLEDs.ForEach(p => p.SetBlue(blueValue));
                     break;
 
+                case APA102Action.ShowColors:
+                    leds[0].SetRgbHex("#ee4035", 0.1m);
+                    leds[1].SetRgbHex("#ee4035", 0.1m);
+                    leds[2].SetRgbHex("#f37736", 0.1m);
+                    leds[3].SetRgbHex("#fdf498", 0.1m);
+                    leds[4].SetRgbHex("#7bc043", 0.1m);
+                    leds[5].SetRgbHex("#0392cf", 0.1m);
+                    leds[6].SetRgbHex("#0392cf", 0.1m);
+                    break;
+
                 default:
                     throw new NotImplementedException($"{action} is not implemented");
             }
@@ -308,6 +318,14 @@ namespace HomeBear.Rainbow.Controller
         public void TurnOff(int? index = null)
         {
             PerformAction(APA102Action.TurnOff, null, true, index);
+        }
+
+        /// <summary>
+        /// Shows color full LED values on the strip of seven.
+        /// </summary>
+        public void ShowColors()
+        {
+            PerformAction(APA102Action.ShowColors, writeByte: true);
         }
 
         /// <summary>

@@ -120,7 +120,7 @@ namespace HomeBear.Rainbow.Controller
         /// </summary>
         /// <param name="hex">Hexadecimal string.</param>
         /// <param name="brightness">Brightness value. Default value is 1.</param>
-        public void SetRgbHex(string hex, int brightness = 1)
+        public void SetRgbHex(string hex, decimal brightness = 1)
         {
             // Unify string look.
             hex = hex.Replace("#", string.Empty);

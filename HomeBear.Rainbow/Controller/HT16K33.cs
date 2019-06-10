@@ -8,10 +8,20 @@ using Windows.Devices.I2c;
 
 namespace HomeBear.Rainbow.Controller
 {
-    // https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/alphanum4.py
-    // https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/HT16K33.py
-    // https://gist.github.com/joefutrelle/662c9245231158f886af
-    // https://github.com/dmadison/LED-Segment-ASCII/blob/master/14-Segment/14-Segment-ASCII_BIN.txt
+    /// <summary>
+    /// HT16K33 14-segment display controller.
+    /// 
+    /// Links:
+    ///         - Pimoroni source:
+    ///             https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/alphanum4.py
+    ///             https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/HT16K33.py
+    ///             
+    ///         - Bitmask overview:
+    ///             https://github.com/dmadison/LED-Segment-ASCII/blob/master/14-Segment/14-Segment-ASCII_BIN.txt
+    ///             
+    ///         - Other
+    ///             https://github.com/markubiak/ht16k33-fourteensegment-display/blob/master/led_backpack.js
+    /// </summary>
     class HT16K33 : IDisposable
     {
         #region Private constants
@@ -102,34 +112,34 @@ namespace HomeBear.Rainbow.Controller
         private static readonly byte HT16K33_ADDRESS = 0x70;
 
         /// <summary>
-        /// I2C blink command register.
-        /// </summary>
-        private static readonly byte REGISTER_BLINK_COMMAND = 0x80;
-
-        /// <summary>
-        /// I2C display on register.
-        /// </summary>
-        private static readonly byte REGISTER_BLINK_DISPLAY_ON = 0x01;
-
-        /// <summary>
-        /// I2C register to prevent blinking.
-        /// </summary>
-        private static readonly byte REGISTER_BLINK_OFF = 0x02;
-
-        /// <summary>
         /// I2C command register to setup.
         /// </summary>
         private static readonly byte REGISTER_SYSTEM_SETUP = 0x20;
 
         /// <summary>
-        /// I2C OSCILLATOR register.
+        /// I2C display command register.
         /// </summary>
-        private static readonly byte REGISTER_OSCILLATOR = 0x01;
+        private static readonly byte REGISTER_DISPLAY_SETUP = 0x80;
+
+        /// <summary>
+        /// I2C register to turn on the display.
+        /// </summary>
+        private static readonly byte REGISTER_DISPLAY_ON = 0x01;
 
         /// <summary>
         /// I2C command register to set brightness.
         /// </summary>
-        private static readonly byte REGISTER_BRIGHTNESS_COMMAND = 0xE0;
+        private static readonly byte REGISTER_BRIGHTNESS_SETUP = 0xE0;
+
+        /// <summary>
+        /// I2C register to prevent blinking.
+        /// </summary>
+        private static readonly byte REGISTER_BLINKRATE_OFF = 0x00;
+
+        /// <summary>
+        /// I2C OSCILLATOR register.
+        /// </summary>
+        private static readonly byte REGISTER_OSCILLATOR = 0x01;
 
         /// <summary>
         /// Defines the maximum brightness.
@@ -155,7 +165,7 @@ namespace HomeBear.Rainbow.Controller
         /// Segment digit buffer.
         /// Used to write data to the display.
         /// </summary>
-        private byte[] segmentBuffer = Enumerable.Repeat(Convert.ToByte(0), BUFFER_SIZE).ToArray();
+        private byte[] segmentBuffer = Enumerable.Repeat(Convert.ToByte(0b00000000), BUFFER_SIZE).ToArray();
 
         /// <summary>
         /// Underyling HT16K33 device.
@@ -230,7 +240,7 @@ namespace HomeBear.Rainbow.Controller
 
             // Setup device.
             WriteSetup();
-            WriteBlink();
+            WriteBlinkrate();
             WriteBrightness();
 
             // DEV
@@ -253,9 +263,9 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// Writes (preventing) blink values.
         /// </summary>
-        private void WriteBlink()
+        private void WriteBlinkrate()
         {
-            byte[] writeBuffer = new byte[] { Convert.ToByte(REGISTER_BLINK_COMMAND | REGISTER_BLINK_DISPLAY_ON | REGISTER_BLINK_OFF) };
+            byte[] writeBuffer = new byte[] { Convert.ToByte(REGISTER_DISPLAY_SETUP | REGISTER_DISPLAY_ON | (REGISTER_BLINKRATE_OFF << 1)) };
             ht16k33.Write(writeBuffer);
         }
 
@@ -264,7 +274,7 @@ namespace HomeBear.Rainbow.Controller
         /// </summary>
         private void WriteBrightness()
         {
-            byte[] writeBuffer = new byte[] { Convert.ToByte(REGISTER_BRIGHTNESS_COMMAND | MAX_BRIGHTNESS) };
+            byte[] writeBuffer = new byte[] { Convert.ToByte(REGISTER_BRIGHTNESS_SETUP | MAX_BRIGHTNESS) };
             ht16k33.Write(writeBuffer);
         }
 
@@ -283,6 +293,15 @@ namespace HomeBear.Rainbow.Controller
             }
 
             // If not, return default.
+            return GetDefaultCharBitmask();
+        }
+
+        /// <summary>
+        /// Gets the default value for a char in the segment buffer.
+        /// </summary>
+        /// <returns>Default value (' ').</returns>
+        private byte[] GetDefaultCharBitmask()
+        {
             return BITMASK_DICTIONARY[DEFAULT_BITMASK_CHAR];
         }
 
@@ -294,7 +313,7 @@ namespace HomeBear.Rainbow.Controller
         /// Will show the given string in the seven segment display.
         /// Maximum length: NUMBER_OF_SEGMENTS (4) chars.
         /// </summary>
-        /// <param name="message">Message tp show.</param>
+        /// <param name="message">Message to show.</param>
         public void Show(string message)
         {
             // Ensure message has valid length.
@@ -307,7 +326,6 @@ namespace HomeBear.Rainbow.Controller
             Logger.Log(this, $"Show for {message}");
             for (int i = 0; i < message.Length; i++)
             {
-                Logger.Log(this, $"Char: {message[i]} at index: {i}");
                 var bitmask = ConvertCharToBitmask(message[i]);
                 segmentBuffer[i * 2] = Convert.ToByte(bitmask[0] & 0xFF);
                 segmentBuffer[i * 2 + 1] = Convert.ToByte(bitmask[1] & 0xFF);

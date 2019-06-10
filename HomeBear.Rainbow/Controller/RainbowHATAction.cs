@@ -48,6 +48,11 @@
         /// <summary>
         /// Buzzes the piezzo element for a given time span.
         /// </summary>
-        Buzz
+        Buzz,
+
+        /// <summary>
+        /// Lets the LED strip shine in a rainbow-like way.
+        /// </summary>
+        ShowRainbow
     }
 }

@@ -33,6 +33,13 @@
         /// <summary>
         /// Modifies the blue part value of the LED.
         /// </summary>
-        ModifyBlue
+        ModifyBlue,
+
+        /// <summary>
+        /// Shows a color spectrum on all LEDs.
+        /// Use it as demo or startin value to show 
+        /// a full lumination.
+        /// </summary>
+        ShowColors
     }
 }

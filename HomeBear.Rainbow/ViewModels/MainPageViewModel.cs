@@ -132,6 +132,10 @@ namespace HomeBear.Rainbow.ViewModel
                 rainbowHAT.PerformAction(RainbowHATAction.TurnOnRed);
                 rainbowHAT.PerformAction(RainbowHATAction.LEDsOn);
             }
+            else if (e.Button == RainbowHATButtonSource.CaptiveB)
+            {
+                rainbowHAT.PerformAction(RainbowHATAction.ShowRainbow);
+            }
             else if (e.Button == RainbowHATButtonSource.CaptiveC)
             {
                 rainbowHAT.PerformAction(RainbowHATAction.TurnOffRed);

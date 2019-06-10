@@ -213,6 +213,22 @@ namespace HomeBear.Rainbow.Controller
                     redPin.Write(GpioPinValue.Low);
                     break;
 
+                case RainbowHATAction.TurnOnGreen:
+                    greenPin.Write(GpioPinValue.High);
+                    break;
+
+                case RainbowHATAction.TurnOffGreen:
+                    greenPin.Write(GpioPinValue.Low);
+                    break;
+
+                case RainbowHATAction.TurnOnBlue:
+                    bluePin.Write(GpioPinValue.High);
+                    break;
+
+                case RainbowHATAction.TurnOffBlue:
+                    bluePin.Write(GpioPinValue.Low);
+                    break;
+
                 case RainbowHATAction.LEDsOn:
                     apa102.TurnOn();
                     break;
@@ -224,6 +240,10 @@ namespace HomeBear.Rainbow.Controller
                 case RainbowHATAction.Buzz:
                     buzzerPin.Start();
                     ThreadPoolTimer.CreatePeriodicTimer((ThreadPoolTimer threadPoolTimer) => { buzzerPin.Stop(); }, TimeSpan.FromMilliseconds(500));
+                    break;
+
+                case RainbowHATAction.ShowRainbow:
+                    apa102.ShowColors();
                     break;
 
                 default:
@@ -320,6 +340,13 @@ namespace HomeBear.Rainbow.Controller
 
             Logger.Log(this, "Setup HT16K33");
             await ht16k33.InitializeAsync();
+
+
+            PerformAction(RainbowHATAction.TurnOnBlue);
+            PerformAction(RainbowHATAction.TurnOnGreen);
+            PerformAction(RainbowHATAction.TurnOnRed);
+
+            PerformAction(RainbowHATAction.ShowRainbow);
         }
 
         /// <summary>
