@@ -3,6 +3,7 @@ using Microsoft.IoT.Lightning.Providers;
 using System;
 using Windows.Devices;
 using Windows.Devices.Gpio;
+using Windows.Devices.I2c;
 using Windows.Devices.Pwm;
 using Windows.System.Threading;
 
@@ -44,6 +45,11 @@ namespace HomeBear.Rainbow.Controller
         private static readonly int GPIO_NUMBER_BUZZER = 13;
 
         /// <summary>
+        /// Cooldown between unsuccessful perform action method calls.
+        /// </summary>
+        private static readonly int PERFORM_ACTION_COOLDOWN_SECONDS = 1;
+
+        /// <summary>
         /// Time span between button reads.
         /// </summary>
         private static readonly TimeSpan BUTTON_READ_INTERVAL = TimeSpan.FromMilliseconds(500);
@@ -52,6 +58,11 @@ namespace HomeBear.Rainbow.Controller
         /// Time span between sensor reads.
         /// </summary>
         private static readonly TimeSpan SENSOR_READ_INTERVAL = TimeSpan.FromSeconds(10);
+
+        /// <summary>
+        /// Determines if RainbowHAT is already initialized.
+        /// </summary>
+        private bool isInitialized = false;
 
         #endregion
 
@@ -66,6 +77,11 @@ namespace HomeBear.Rainbow.Controller
         /// Default pwm controller of the system.
         /// </summary>
         private PwmController pwmController;
+
+        /// <summary>
+        /// Default i2c controller of the system.
+        /// </summary>
+        private I2cController i2cController;
 
         /// <summary>
         /// GPIO pin of the red LED.
@@ -164,6 +180,7 @@ namespace HomeBear.Rainbow.Controller
             // Dispose child controller
             apa102.Dispose();
             bmp280.Dispose();
+            ht16k33.Dispose();
 
             // Dispose pins
             redPin.Dispose();
@@ -203,6 +220,16 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="action">Action to perform.</param>
         public void PerformAction(RainbowHATAction action)
         {
+            // Ensure device has been initialized.
+            if(!isInitialized)
+            {
+                Logger.Log(this, "Device is not initialized, yet. Retrying `PerformAction(...)` soon again.");
+                ThreadPoolTimer.CreateTimer((ThreadPoolTimer threadPoolTimer) => { PerformAction(action); }, TimeSpan.FromSeconds(PERFORM_ACTION_COOLDOWN_SECONDS));
+                return;
+            }
+
+            // Try perform action.
+            Logger.Log(this, $"PerformAction called with '{action}' action.");
             switch (action)
             {
                 case RainbowHATAction.TurnOnRed:
@@ -239,11 +266,19 @@ namespace HomeBear.Rainbow.Controller
 
                 case RainbowHATAction.Buzz:
                     buzzerPin.Start();
-                    ThreadPoolTimer.CreatePeriodicTimer((ThreadPoolTimer threadPoolTimer) => { buzzerPin.Stop(); }, TimeSpan.FromMilliseconds(500));
+                    ThreadPoolTimer.CreateTimer((ThreadPoolTimer threadPoolTimer) => { buzzerPin.Stop(); }, TimeSpan.FromMilliseconds(500));
                     break;
 
                 case RainbowHATAction.ShowRainbow:
                     apa102.ShowColors();
+                    break;
+
+                case RainbowHATAction.ShowDemo:
+                    redPin.Write(GpioPinValue.High);
+                    greenPin.Write(GpioPinValue.High);
+                    bluePin.Write(GpioPinValue.High);
+                    apa102.ShowColors();
+                    ht16k33.Show("DEMO");
                     break;
 
                 default:
@@ -260,13 +295,13 @@ namespace HomeBear.Rainbow.Controller
         /// Initializes the RainbowHAT. It will setup all required 
         /// GPIO pins.
         /// 
-        /// Caution;
+        /// Caution:
         ///     This is required before accessing other
         ///     methods in this class.
         /// </summary>
         private async void InitializeAsync()
         {
-            Logger.Log(this, "InitializeAsync");
+            Logger.Log(this, "Starting InitializeAsync");
             Logger.Log(this, "Checking for LightningProvider");
             // Check if drivers are enabled
             if (!LightningProvider.IsLightningEnabled)
@@ -278,25 +313,11 @@ namespace HomeBear.Rainbow.Controller
             // Aggregate provider.
             LowLevelDevicesController.DefaultProvider = LightningProvider.GetAggregateProvider();
 
-            // Setup PWM controller
-            Logger.Log(this, "Checking for PWM controller");
-            var pwmControllers = await PwmController.GetControllersAsync(LightningPwmProvider.GetPwmProvider());
-            if (pwmControllers == null || pwmControllers.Count < 2)
-            {
-                throw new OperationCanceledException("Operation canceled due missing PWM controller");
-            }
-
-            pwmController = pwmControllers[1];
-            pwmController.SetDesiredFrequency(50);
-
-            // Setup GPIO controller
-            Logger.Log(this, "Checking for GPIO controller");
-            var gpioControllers = await GpioController.GetControllersAsync(LightningGpioProvider.GetGpioProvider());
-            if (gpioControllers == null || gpioControllers.Count < 1)
-            {
-                throw new OperationCanceledException("Operation canceled due missing GPIO controller");
-            }
-            gpioController = gpioControllers[0];
+            // Get default controllers.
+            Logger.Log(this, "Getting default controller.");
+            gpioController = await GpioController.GetDefaultAsync();
+            i2cController = await I2cController.GetDefaultAsync();
+            pwmController = await PwmController.GetDefaultAsync();
 
             // Setup LEDs.
             Logger.Log(this, "Setup LEDs");
@@ -325,6 +346,16 @@ namespace HomeBear.Rainbow.Controller
             buzzerPin.Stop();
             buzzerPin.SetActiveDutyCyclePercentage(0.05);
 
+            // Initialze child devices
+
+            Logger.Log(this, "Setup ");
+            apa102.Initialize(gpioController);
+            Logger.Log(this, "Setup BMP280");
+            await bmp280.InitializeAsync(i2cController);
+
+            Logger.Log(this, "Setup HT16K33");
+            ht16k33.Initialize(i2cController);
+
             // Setup timer.
             Logger.Log(this, "Setup timers");
             captiveButtonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(CaptiveButtonsValueReadTimer_Tick,
@@ -334,19 +365,9 @@ namespace HomeBear.Rainbow.Controller
             pressureValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(PreassureValueReadTimer_Tick,
                 SENSOR_READ_INTERVAL);
 
-            // Initialze child devices
-            Logger.Log(this, "Setup BMP280");
-            await bmp280.InitializeAsync();
-
-            Logger.Log(this, "Setup HT16K33");
-            await ht16k33.InitializeAsync();
-
-
-            PerformAction(RainbowHATAction.TurnOnBlue);
-            PerformAction(RainbowHATAction.TurnOnGreen);
-            PerformAction(RainbowHATAction.TurnOnRed);
-
-            PerformAction(RainbowHATAction.ShowRainbow);
+            // Set device as intialized.
+            Logger.Log(this, "Finished InitializeAsync");
+            isInitialized = true;
         }
 
         /// <summary>

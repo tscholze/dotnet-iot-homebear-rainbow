@@ -52,11 +52,6 @@ namespace HomeBear.Rainbow.Controller
         #region Private properties 
 
         /// <summary>
-        /// System's default GPIO controller.
-        /// </summary>
-        private GpioController gpioController = GpioController.GetDefault();
-
-        /// <summary>
         /// GPIO pin for the data value.
         /// </summary>
         private GpioPin dataPin;
@@ -74,21 +69,7 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// List of all led leds.
         /// </summary>
-        private APA102LED[] leds = new APA102LED[NUMBER_OF_LEDS];
-
-        #endregion
-
-        #region Constructor & Deconstructor
-
-        /// <summary>
-        /// Constructor.
-        /// 
-        /// Will setup all required GPIO settings and values.
-        /// </summary>
-        public APA102()
-        {
-            InitializeAsync();
-        }
+        private readonly APA102LED[] leds = new APA102LED[NUMBER_OF_LEDS];
 
         #endregion
 
@@ -111,34 +92,18 @@ namespace HomeBear.Rainbow.Controller
         #region Private helper
 
         /// <summary>
-        /// Initializes the APA102 async.
+        /// Initializes the APA102.
         /// 
         /// Caution:
         ///     This is required before accessing other
         ///     methods in this class.
         /// </summary>
         /// <returns>Task.</returns>
-        private async void InitializeAsync()
+        public void Initialize(GpioController gpioController)
         {
             Logger.Log(this, "InitializeAsync");
 
-            // Check if drivers are enabled
-            if (!LightningProvider.IsLightningEnabled)
-            {
-                Logger.Log(this, "LightningProvider not enabled. Returning.");
-                return;
-            }
-
-            // Setup GPIO controller
-            Logger.Log(this, "Checking for GPIO controller");
-            var gpioControllers = await GpioController.GetControllersAsync(LightningGpioProvider.GetGpioProvider());
-            if (gpioControllers == null || gpioControllers.Count < 1)
-            {
-                throw new OperationCanceledException("Operation canceled due missing GPIO controller");
-            }
-            gpioController = gpioControllers[0];
-
-            // Setup list.
+            // Setup LEDs.
             for (int i = 0; i < NUMBER_OF_LEDS; i++)
             {
                 leds[i] = new APA102LED();

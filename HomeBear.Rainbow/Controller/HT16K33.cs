@@ -165,7 +165,7 @@ namespace HomeBear.Rainbow.Controller
         /// Segment digit buffer.
         /// Used to write data to the display.
         /// </summary>
-        private byte[] segmentBuffer = Enumerable.Repeat(Convert.ToByte(0b00000000), BUFFER_SIZE).ToArray();
+        private readonly byte[] segmentBuffer = Enumerable.Repeat(Convert.ToByte(0b00000000), BUFFER_SIZE).ToArray();
 
         /// <summary>
         /// Underyling HT16K33 device.
@@ -182,10 +182,7 @@ namespace HomeBear.Rainbow.Controller
         public void Dispose()
         {
             // Reset buffer.
-            segmentBuffer = new byte[BUFFER_SIZE];
-
-            // Write buffer to device.
-            ht16k33.Write(segmentBuffer);
+            ClearSegments();
 
             // Dispose device.
             ht16k33.Dispose();
@@ -196,41 +193,19 @@ namespace HomeBear.Rainbow.Controller
         #region Public helper
 
         /// <summary>
-        /// Initializes the HT16K33 async.
+        /// Initializes the HT16K33.
         /// 
         /// Caution:
         ///     This is required before accessing other
         ///     methods in this class.
         /// </summary>
         /// <returns>Task.</returns>
-        public async Task InitializeAsync()
+        public void Initialize(I2cController i2cController)
         {
             Logger.Log(this, "InitializeAsync");
 
-            // Check if drivers are enabled
-            if (!LightningProvider.IsLightningEnabled)
-            {
-                Logger.Log(this, "LightningProvider not enabled. Returning.");
-                return;
-            }
-
-            // Setup settings.
-            I2cConnectionSettings settings = new I2cConnectionSettings(HT16K33_ADDRESS)
-            {
-                BusSpeed = I2cBusSpeed.FastMode
-            };
-
-            // Find i2c device.
-            var i2cController = await I2cController.GetDefaultAsync();
-
-            // Ensure controller has been found.
-            if (i2cController == null)
-            {
-                throw new OperationCanceledException("I2cController device not found.");
-            }
-
-            // Get device.
-            ht16k33 = i2cController.GetDevice(settings);
+            // Setup device.
+            ht16k33 = i2cController.GetDevice(new I2cConnectionSettings(HT16K33_ADDRESS) { BusSpeed = I2cBusSpeed.FastMode });
 
             // Ensure device has been found.
             if (ht16k33 == null)
@@ -239,12 +214,10 @@ namespace HomeBear.Rainbow.Controller
             }
 
             // Setup device.
+            ClearSegments();
             WriteSetup();
             WriteBlinkrate();
             WriteBrightness();
-
-            // DEV
-            Show("1234");
         }
 
         #endregion
@@ -276,6 +249,11 @@ namespace HomeBear.Rainbow.Controller
         {
             byte[] writeBuffer = new byte[] { Convert.ToByte(REGISTER_BRIGHTNESS_SETUP | MAX_BRIGHTNESS) };
             ht16k33.Write(writeBuffer);
+        }
+
+        private void ClearSegments()
+        {
+            Show("    ");
         }
 
         /// <summary>
@@ -327,6 +305,7 @@ namespace HomeBear.Rainbow.Controller
             for (int i = 0; i < message.Length; i++)
             {
                 var bitmask = ConvertCharToBitmask(message[i]);
+                Logger.Log(this, $"Writing char: '{message[i]}' at index: {i}.");
                 segmentBuffer[i * 2] = Convert.ToByte(bitmask[0] & 0xFF);
                 segmentBuffer[i * 2 + 1] = Convert.ToByte(bitmask[1] & 0xFF);
             }

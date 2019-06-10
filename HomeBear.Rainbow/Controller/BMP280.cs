@@ -171,28 +171,14 @@ namespace HomeBear.Rainbow.Controller
         ///     This is required before accessing other
         ///     methods in this class.
         /// </summary>
+        /// <param name="i2cController">Underlying I2C controller.</param>
         /// <returns>Task.</returns>
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(I2cController i2cController)
         {
             Logger.Log(this, "InitializeAsync");
 
-            // Check if drivers are enabled
-            if (!LightningProvider.IsLightningEnabled)
-            {
-                Logger.Log(this, "LightningProvider not enabled. Returning.");
-                return;
-            }
-
-            // Setup settings.
-            I2cConnectionSettings settings = new I2cConnectionSettings(BMP280_ADDRESS)
-            {
-                BusSpeed = I2cBusSpeed.FastMode
-            };
-
-            // Find i2c device.
-            var i2cControllers = await I2cController.GetControllersAsync(LightningI2cProvider.GetI2cProvider());
-            var i2cController = i2cControllers[0];
-            bmp280 = i2cController.GetDevice(settings);
+            // Setup device.
+            bmp280 = i2cController.GetDevice(new I2cConnectionSettings(BMP280_ADDRESS) { BusSpeed = I2cBusSpeed.FastMode });
 
             // Ensure device has been found.
             if(bmp280 == null)

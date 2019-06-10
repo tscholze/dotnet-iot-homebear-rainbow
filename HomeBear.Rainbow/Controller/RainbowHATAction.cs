@@ -53,6 +53,11 @@
         /// <summary>
         /// Lets the LED strip shine in a rainbow-like way.
         /// </summary>
-        ShowRainbow
+        ShowRainbow,
+
+        /// <summary>
+        /// Lets everything light up. Perfect for demo usage.
+        /// </summary>
+        ShowDemo
     }
 }

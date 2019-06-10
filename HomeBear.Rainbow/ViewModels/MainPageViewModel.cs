@@ -107,6 +107,9 @@ namespace HomeBear.Rainbow.ViewModel
             rainbowHAT.CaptiveButtonPressed += CaptiveButtonPressed;
             rainbowHAT.TemperatureMeasured += TemperaturMeassured;
             rainbowHAT.PressureMeasured += PressureMeasured;
+
+            // Show demo of RainbowHAT
+            rainbowHAT.PerformAction(RainbowHATAction.ShowDemo);
         }
 
         #endregion
