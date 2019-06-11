@@ -278,7 +278,7 @@ namespace HomeBear.Rainbow.Controller
                     greenPin.Write(GpioPinValue.High);
                     bluePin.Write(GpioPinValue.High);
                     apa102.ShowColors();
-                    ht16k33.Show("DEMO");
+                    ht16k33.Show("Demo");
                     break;
 
                 default:
