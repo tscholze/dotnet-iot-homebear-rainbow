@@ -1,6 +1,6 @@
 # HomeBear.Rainbow
 
-<img src="docs/header.png" width="100" /> 
+<img src="docs/header.png" width="300" /> 
 
 > Windows 10 IoT Core UWP app that works great with the [Pimoroni RainbowHAT](https://shop.pimoroni.com/products/rainbow-hat-for-android-things). The app is currently work in progress.
 
@@ -8,20 +8,22 @@
 - Windows 10
 - Visual Studio 2019
 - Raspbbery Pi 3 (B) with [Windows 10 IoT Core](https://developer.microsoft.com/en-us/windows/iot) 17763 or higher
-- Enabled Dynamic driver mode in Windows 10 IoT Core
+- Enabled [Dynamic driver mode](https://docs.microsoft.com/en-us/windows/iot-core/develop-your-app/lightningproviders) in Windows 10 IoT Core
 - [Pimoroni RainbowHAT](https://shop.pimoroni.com/products/rainbow-hat-for-android-things)
 
 ## How it looks
 
 At the moment, it's just a headless application that is controlled by the input controls of the RainbowHAT.
 
+![Device](docs/pi.png)
+
 ## Features
 
 - [x] Control the large R, G, B LEDs
-- [x] Seven APA102 multicolour LEDs
 - [x] Listen to 'A', 'B', 'C' capacitive touch buttons
-- [x] 14-segment alphanumeric displays
 - [x] Piezo buzzer
+- [x] Seven APA102 multicolour LEDs
+- [x] HT16K33 14-segment alphanumeric displays
 - [x] BMP280 temperature sensor
 - [x] BMP280 pressure sensor
 
@@ -29,11 +31,29 @@ At the moment, it's just a headless application that is controlled by the input 
 * All features have room for huge improvments.
 * All values could be wrong. Please report mismatches meassurements.
 
+## Usage
+
+Use the an instance of the `RainbowHAT` to controll the HAT, regardless what sub-controller (APA102, BMP280, ) you want to control.
+Listen on events to get values back from the HAT.
+
+Call the `PerformAction` method to execute specified actions on the Pi's HAT.
+
+```
+// Setup event callbacks.
+rainbowHAT.CaptiveButtonPressed += CaptiveButtonPressed;
+rainbowHAT.TemperatureMeasured += TemperaturMeassured;
+rainbowHAT.PressureMeasured += PressureMeasured;
+
+// Perform actions
+rainbowHAT.PerformAction(RainbowHATAction.ShowDemo);
+```
+
+Keep an eye on the debug output. If something went wrong, it should be logged to it.
+
 ## Known issues
-- Piezo buzzer: Buzzes on start up
-- 14-segment alphanumeric displays: Bitmask does not always contain correct values
-- 14-segment alphanumeric displays: Flickers
+
 - BMP280 pressure sensor: Is always around 90 hPa.
+- App gets randomly terminated.
 
 ## Contributing
 
@@ -46,6 +66,7 @@ Just me, [Tobi]([https://tscholze.github.io).
 ## Thanks to
 
 * Pimoroni [Discord](https://discordapp.com/invite/hr93ByC) Community
+* Stackoverflow User [michael-xu-msft](https://stackoverflow.com/users/8546089/)
 * Pimoroni Python [source](https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/bmp280.py)
 * [Microsoft IoT Samples](https://github.com/ms-iot/adafruitsample/blob/master/Lesson_203/FullSolution/BMP280.cs)
 
