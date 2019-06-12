@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HomeBear.Rainbow.Controller
+﻿namespace HomeBear.Rainbow.Controller
 {
+    /// <summary>
+    /// Contains custom string extensions.
+    /// </summary>
     static class StringExtension
     {
         /// <summary>
@@ -15,7 +12,7 @@ namespace HomeBear.Rainbow.Controller
         /// <param name="input">Hex string.</param>
         /// <param name="from">Start index of substring that should
         /// be converted.</param>
-        /// <param name="length">Length of the substring.</param>
+        /// <param name="length">Optional length of the substring.</param>
         /// <returns>Parsed hex-based int value.</returns>
         public static int ToHexInt(this string input, int from, int length = 2)
         {

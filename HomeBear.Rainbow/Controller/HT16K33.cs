@@ -1,9 +1,7 @@
 ﻿using HomeBear.Rainbow.Utils;
-using Microsoft.IoT.Lightning.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Windows.Devices.I2c;
 
 namespace HomeBear.Rainbow.Controller
@@ -21,6 +19,7 @@ namespace HomeBear.Rainbow.Controller
     ///             
     ///         - Other
     ///             https://github.com/markubiak/ht16k33-fourteensegment-display/blob/master/led_backpack.js
+    ///             https://stackoverflow.com/questions/56528744/ht16k33-based-fourteen-segment-control-does-not-always-show-the-correct-characte/
     /// </summary>
     class HT16K33 : IDisposable
     {

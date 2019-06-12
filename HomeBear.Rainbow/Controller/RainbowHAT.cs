@@ -11,13 +11,21 @@ namespace HomeBear.Rainbow.Controller
 {
     /// <summary>
     /// This class helps to send controls and read values from the RainbowHAT.
-    /// Use the `Default` property to access this controller.
+    /// 
+    /// Usage:
+    ///     - Add event listener to events to react to value changes or user input.
+    ///     - Call `PerformAction(RainbowHATAction) to trigger actions.
     /// 
     /// Links:
-    ///     - Pimoroni:
+    ///     - Pimoroni product page:
     ///         https://shop.pimoroni.com/products/rainbow-hat-for-android-things
+    ///         
+    ///     - Pimoroni source:
+    ///         https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/lights.py
+    ///         https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/touch.py
     ///         https://github.com/pimoroni/rainbow-hat/blob/master/library/rainbowhat/buzzer.py
-    ///     - Scheme: 
+    ///         
+    ///     - GPIO pin scheme: 
     ///         https://pinout.xyz/pinout/rainbow_hat
     /// </summary>
     partial class RainbowHAT: IDisposable
@@ -52,7 +60,7 @@ namespace HomeBear.Rainbow.Controller
         /// <summary>
         /// Time span between button reads.
         /// </summary>
-        private static readonly TimeSpan BUTTON_READ_INTERVAL = TimeSpan.FromMilliseconds(500);
+        private static readonly TimeSpan BUTTON_READ_INTERVAL = TimeSpan.FromMilliseconds(50);
 
         /// <summary>
         /// Time span between sensor reads.
@@ -189,6 +197,12 @@ namespace HomeBear.Rainbow.Controller
             buttonAPin.Dispose();
             buttonBPin.Dispose();
             buttonCPin.Dispose();
+            buzzerPin.Dispose();
+
+            // Dispose controllers
+            pwmController = null;
+            i2cController = null;
+            gpioController = null;
         }
 
         #endregion
@@ -302,8 +316,9 @@ namespace HomeBear.Rainbow.Controller
         private async void InitializeAsync()
         {
             Logger.Log(this, "Starting InitializeAsync");
-            Logger.Log(this, "Checking for LightningProvider");
+
             // Check if drivers are enabled
+            Logger.Log(this, "Checking for LightningProvider");
             if (!LightningProvider.IsLightningEnabled)
             {
                 Logger.Log(this, "LightningProvider not enabled. Returning.");
@@ -315,9 +330,20 @@ namespace HomeBear.Rainbow.Controller
 
             // Get default controllers.
             Logger.Log(this, "Getting default controller.");
+            pwmController = (await PwmController.GetControllersAsync(LightningPwmProvider.GetPwmProvider()))[1];
+            pwmController = await PwmController.GetDefaultAsync();
             gpioController = await GpioController.GetDefaultAsync();
             i2cController = await I2cController.GetDefaultAsync();
-            pwmController = await PwmController.GetDefaultAsync();
+
+            // Ensure requiored controllers are available.
+            if (gpioController == null || i2cController == null || pwmController == null)
+            {
+                Logger.Log(this, "One or more controller missing.");
+                return;
+            }
+
+            // Setup controllers.
+            pwmController.SetDesiredFrequency(50);
 
             // Setup LEDs.
             Logger.Log(this, "Setup LEDs");
@@ -343,27 +369,23 @@ namespace HomeBear.Rainbow.Controller
             // Setup buzzer
             Logger.Log(this, "Setup buzzers / servos / motors");
             buzzerPin = pwmController.OpenPin(GPIO_NUMBER_BUZZER);
-            buzzerPin.Stop();
             buzzerPin.SetActiveDutyCyclePercentage(0.05);
 
-            // Initialze child devices
+            // Setup timer.
+            Logger.Log(this, "Setup timers");
+            captiveButtonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(CaptiveButtonsValueReadTimer_Tick, BUTTON_READ_INTERVAL);
+            temperatureValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(TemperatureValueReadTimer_Tick, SENSOR_READ_INTERVAL);
+            pressureValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(PreassureValueReadTimer_Tick, SENSOR_READ_INTERVAL);
 
-            Logger.Log(this, "Setup ");
+            // Initialze child devices
+            Logger.Log(this, "Setup APA102");
             apa102.Initialize(gpioController);
+
             Logger.Log(this, "Setup BMP280");
             await bmp280.InitializeAsync(i2cController);
 
             Logger.Log(this, "Setup HT16K33");
             ht16k33.Initialize(i2cController);
-
-            // Setup timer.
-            Logger.Log(this, "Setup timers");
-            captiveButtonsValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(CaptiveButtonsValueReadTimer_Tick,
-                BUTTON_READ_INTERVAL);
-            temperatureValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(TemperatureValueReadTimer_Tick,
-                SENSOR_READ_INTERVAL);
-            pressureValueReadTimer = ThreadPoolTimer.CreatePeriodicTimer(PreassureValueReadTimer_Tick,
-                SENSOR_READ_INTERVAL);
 
             // Set device as intialized.
             Logger.Log(this, "Finished InitializeAsync");
