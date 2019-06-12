@@ -33,7 +33,7 @@ At the moment, it's just a headless application that is controlled by the input 
 
 ## Usage
 
-Use the an instance of the `RainbowHAT` to controll the HAT, regardless what sub-controller (APA102, BMP280, ) you want to control.
+Use the an instance of the `RainbowHAT` to controll the HAT, regardless what sub-controller (APA102, BMP280, HT16K33) you want to control.
 Listen on events to get values back from the HAT.
 
 Call the `PerformAction` method to execute specified actions on the Pi's HAT.
