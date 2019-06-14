@@ -1,5 +1,4 @@
 ﻿using HomeBear.Rainbow.Utils;
-using Microsoft.IoT.Lightning.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +9,7 @@ namespace HomeBear.Rainbow.Controller
     /// <summary>
     /// APA102 controller.
     /// Specified for using it with the RainbowHAT.
+    /// This is a C# port of the offical Pimoroni Python library.
     /// 
     /// Links:
     ///     - Pimoroni original code:

@@ -22,7 +22,7 @@ At the moment, it's just a headless application that is controlled by the input 
 - [x] Control the large R, G, B LEDs
 - [x] Listen to 'A', 'B', 'C' capacitive touch buttons
 - [x] Piezo buzzer
-- [x] Seven APA102 multicolour LEDs
+- [x] APA102 to control seven multicolor LEDs
 - [x] HT16K33 14-segment alphanumeric displays
 - [x] BMP280 temperature sensor
 - [x] BMP280 pressure sensor
@@ -52,7 +52,6 @@ Keep an eye on the debug output. If something went wrong, it should be logged to
 
 ## Known issues
 
-- BMP280 pressure sensor: Is always around 90 hPa.
 - App gets randomly terminated.
 
 ## Contributing

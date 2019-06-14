@@ -8,6 +8,7 @@ namespace HomeBear.Rainbow.Controller
 {
     /// <summary>
     /// BMP280 controller.
+    /// This is a C# port of the offical Pimoroni Python library.
     /// 
     /// Links:
     ///     - Pimoroni original code:
@@ -265,34 +266,27 @@ namespace HomeBear.Rainbow.Controller
             byte lsb = ReadByte(REGISTER_LSB_PRESSURE);
             byte xlsb = ReadByte(REGISTER_XLSB_PRESSURE);
 
-            // Combine values into raw temperatur value.
+            // Combine values into raw preassure value.
             int rawValue = (msb << 12) + (lsb << 4) + (xlsb >> 4);
+            long pressure = 1048576 - rawValue;
 
             // Transform it into a humanreadble value.
             // It uses the compensation formula in the BMP280 datasheet.
-            long part1 = Convert.ToInt64(temperature) - 128000;
-            long part2 = part1 * part1 * calibrationInformation.Pressure6;
-            part2 += ((part1 * calibrationInformation.Pressure5) << 17);
-            part2 += (long)calibrationInformation.Pressure4 << 35;
-            part1 = ((part1 * part1 * calibrationInformation.Pressure3) >> 8) + ((part1 * calibrationInformation.Pressure2) << 12);
-            part1 = ((((long)1 << 47) + part1) * calibrationInformation.Pressure1) >> 33;
+            long part1 = Convert.ToInt64(temperature) / 2 - 64000;
+            long part2 = part1 * part1 * calibrationInformation.Pressure6 / 32768;
+            part2 += part1 * calibrationInformation.Pressure5 * 2;
+            part2 = part2 / 4 + (calibrationInformation.Pressure5 * 65536);
+            part1 = (calibrationInformation.Pressure3 * part1 * part1 / 524288 + calibrationInformation.Pressure2 * part1) / 524288;
+            part1 = (1 + part1 / 32768) * calibrationInformation.Pressure1;
 
-            // Ensure valid information.
-            if (part1 == 0)
-            {
-                Logger.Log(this, "Pressure value would be invalid. Returning 0");
-                return 0; 
-            }
+            // Perform calibration operations according to datasheet.
+            pressure = (pressure - part2 / 4096) * 6250 / part1;
+            part1 = calibrationInformation.Pressure9 * pressure * pressure / 2147483648;
+            part2 = pressure * calibrationInformation.Pressure8 / 32768;
+            pressure += (part1 + part2 + calibrationInformation.Pressure7) / 16;
 
-            // Perform calibration operations as per datasheet: 
-            long pressure = 1048576 - rawValue;
-            pressure = (((pressure << 31) - part2) * 3125) / part1;
-            part1 = (calibrationInformation.Pressure9 * (pressure >> 13) * (pressure >> 13)) >> 25;
-            part2 = (calibrationInformation.Pressure8 * pressure) >> 19;
-            pressure = ((pressure + part1 + part2) >> 8) + ((long)calibrationInformation.Pressure7 << 4);
-
-            // TRansform pressure to hPa
-            pressure = pressure / 256 / 1000;
+            // Conver from pA to hPa.
+            pressure /= 100;
             return pressure;
         }
 

@@ -11,6 +11,7 @@ namespace HomeBear.Rainbow.Controller
 {
     /// <summary>
     /// This class helps to send controls and read values from the RainbowHAT.
+    /// This is a C# port of the offical Pimoroni Python library.
     /// 
     /// Usage:
     ///     - Add event listener to events to react to value changes or user input.
@@ -331,7 +332,6 @@ namespace HomeBear.Rainbow.Controller
             // Get default controllers.
             Logger.Log(this, "Getting default controller.");
             pwmController = (await PwmController.GetControllersAsync(LightningPwmProvider.GetPwmProvider()))[1];
-            pwmController = await PwmController.GetDefaultAsync();
             gpioController = await GpioController.GetDefaultAsync();
             i2cController = await I2cController.GetDefaultAsync();
 

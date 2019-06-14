@@ -111,7 +111,6 @@ namespace HomeBear.Rainbow.ViewModel
             // Show demo of RainbowHAT
             rainbowHAT.PerformAction(RainbowHATAction.ShowDemo);
         }
-
         #endregion
 
         #region Event handlers 

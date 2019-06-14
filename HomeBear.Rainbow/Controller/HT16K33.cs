@@ -8,6 +8,7 @@ namespace HomeBear.Rainbow.Controller
 {
     /// <summary>
     /// HT16K33 14-segment display controller.
+    /// This is a C# port of the offical Pimoroni Python library.
     /// 
     /// Links:
     ///         - Pimoroni source:
