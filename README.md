@@ -31,6 +31,10 @@ At the moment, it's just a headless application that is controlled by the input 
 * All features have room for huge improvments.
 * All values could be wrong. Please report mismatches meassurements.
 
+**Information**
+
+Most of the logic behind is based on the offical Python libraries.
+
 ## Usage
 
 Use the an instance of the `RainbowHAT` to controll the HAT, regardless what sub-controller (APA102, BMP280, HT16K33) you want to control.
