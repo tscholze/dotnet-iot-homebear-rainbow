@@ -56,6 +56,7 @@ Keep an eye on the debug output. If something went wrong, it should be logged to
 
 ## Known issues
 
+- Due to the narrowness of the temperature sensor the the Pi's CPU, it meassures more heat as actual value should be
 - App gets randomly terminated.
 
 ## Contributing
