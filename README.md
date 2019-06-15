@@ -29,7 +29,7 @@ At the moment, it's just a headless application that is controlled by the input 
 
 **Keep in mind**
 * All features have room for improvements.
-* All values could be wrong. Please report mismatches meassurements.
+* All values could be wrong. Please report mismatches measurements.
 
 **Information**
 
