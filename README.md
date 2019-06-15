@@ -28,7 +28,7 @@ At the moment, it's just a headless application that is controlled by the input 
 - [x] BMP280 pressure sensor
 
 **Keep in mind**
-* All features have room for huge improvments.
+* All features have room for improvements.
 * All values could be wrong. Please report mismatches meassurements.
 
 **Information**
@@ -58,6 +58,12 @@ Keep an eye on the debug output. If something went wrong, it should be logged to
 
 - Due to the narrowness of the temperature sensor the the Pi's CPU, it meassures more heat as actual value should be
 - App gets randomly terminated.
+
+## Ideas for the future
+
+- Connect to Azure IoT Hub
+- Rework as background process
+- XAML UI to control the Rainbow HAT
 
 ## Contributing
 
