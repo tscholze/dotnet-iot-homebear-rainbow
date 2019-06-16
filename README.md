@@ -9,7 +9,7 @@
 - Visual Studio 2019
 - Raspbbery Pi 3 (B) with [Windows 10 IoT Core](https://developer.microsoft.com/en-us/windows/iot) 17763 or higher
 - Enabled [Dynamic driver mode](https://docs.microsoft.com/en-us/windows/iot-core/develop-your-app/lightningproviders) in Windows 10 IoT Core
-- [Pimoroni RainbowHAT](https://shop.pimoroni.com/products/rainbow-hat-for-android-things)
+- Pimoroni [Rainbow HAT](https://shop.pimoroni.com/products/rainbow-hat-for-android-things)
 
 ## How it looks
 
