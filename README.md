@@ -65,6 +65,10 @@ Keep an eye on the debug output. If something went wrong, it should be logged to
 - Rework as background process
 - XAML UI to control the Rainbow HAT
 
+## Publications
+- Personal Blog: [[Raspberry Pi] Windows 10 IoT Core + Pimoroni Rainbow HAT = <3](https://tscholze.uber.space/2019/06/15/raspberry-pi-windows-10-iot-core-pimoroni-rainbow-hat/)
+ - Dr. Windows: [Windows 10 IoT Core: Perfekt für Maker und Hobbyisten](https://www.drwindows.de/news/windows-10-iot-core-perfekt-fuer-maker-und-hobbyisten)
+
 ## Contributing
 
 Feel free to improve the quality of the code. It would be great to learn more from experienced C#, UWP and IoT developers.
