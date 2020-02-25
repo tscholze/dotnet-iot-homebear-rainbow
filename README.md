@@ -2,7 +2,7 @@
 
 <img src="docs/header.png" width="300" /> 
 
-> Windows 10 IoT Core UWP app that works great with the [Pimoroni RainbowHAT](https://shop.pimoroni.com/products/rainbow-hat-for-android-things). The app is currently work in progress.
+> Windows 10 IoT Core UWP app that works great with the [Pimoroni RainbowHAT](https://shop.pimoroni.com/products/rainbow-hat-for-android-things). The app is in a final state. No maintenance effort planned.
 
 ## Prerequirements
 - Windows 10
